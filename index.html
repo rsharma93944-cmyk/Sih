@@ -1,0 +1,1839 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ResQAI — AI Landslide Early Warning & Risk Monitoring (NE India)</title>
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+    rel="stylesheet"
+  />
+
+  <!-- Font Awesome -->
+  <link
+    rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+  />
+
+  <!-- Leaflet Map CSS -->
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+    crossorigin=""
+  />
+
+  <!-- App Stylesheet -->
+  <link rel="stylesheet" href="style.css" />
+</head>
+
+<body>
+
+  <!-- ================= LEFT SIDEBAR ================= -->
+  <aside class="sidebar">
+
+    <!-- Logo -->
+    <div class="brand">
+      <div class="logo">
+        <i class="fa-solid fa-mountain-sun"></i>
+      </div>
+      <div class="brand-text">
+        <h1>ResQAI</h1>
+        <p>Nature Warns. We Act.</p>
+      </div>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="side-nav">
+
+      <a href="#home" class="nav-item active" data-view="home">
+        <i class="fa-regular fa-square"></i>
+        <span>Home</span>
+      </a>
+
+      <a href="#live-map" class="nav-item" data-view="live-map">
+        <i class="fa-solid fa-location-dot"></i>
+        <span>Live Map</span>
+      </a>
+
+      <a href="#risk-monitoring" class="nav-item" data-view="risk-monitoring">
+        <i class="fa-solid fa-wave-square"></i>
+        <span>Risk Monitoring</span>
+      </a>
+
+      <a href="#alerts" class="nav-item" data-view="alerts">
+        <i class="fa-regular fa-bell"></i>
+        <span>Alerts</span>
+        <span class="badge" id="sidebarAlertBadge">3</span>
+      </a>
+
+      <a href="#response-center" class="nav-item" data-view="response-center">
+        <i class="fa-solid fa-truck-medical"></i>
+        <span>Response Center</span>
+      </a>
+
+      <a href="#reports" class="nav-item" data-view="reports">
+        <i class="fa-regular fa-file-lines"></i>
+        <span>Reports</span>
+      </a>
+
+      <a href="#settings" class="nav-item" data-view="settings">
+        <i class="fa-solid fa-gear"></i>
+        <span>Settings</span>
+      </a>
+
+    </nav>
+
+    <!-- Bottom Text -->
+    <div class="sidebar-bottom">
+      <p>Smarter Technology<br>for a Safer Tomorrow</p>
+      <div class="green-line"></div>
+    </div>
+
+  </aside>
+
+
+  <!-- ================= TOP NAVBAR ================= -->
+  <header class="topbar">
+
+    <!-- Mobile Menu Toggle Button -->
+    <button class="menu-toggle" id="menuToggle" aria-label="Toggle Navigation">
+      <i class="fa-solid fa-bars"></i>
+    </button>
+
+    <!-- Search -->
+    <div class="search-box">
+      <i class="fa-solid fa-magnifying-glass"></i>
+      <input
+        type="text"
+        id="globalSearchInput"
+        placeholder="Search location, district, or area..."
+      />
+    </div>
+
+    <!-- Right Section -->
+    <div class="top-right">
+
+      <!-- Live Monitoring System Pulse -->
+      <div class="system-status-pill">
+        <span class="pulse-dot"></span>
+        <span class="status-text">NE Telemetry Live</span>
+      </div>
+
+      <!-- Notification -->
+      <button class="notification" id="topNotificationBtn" title="View Active Alerts">
+        <i class="fa-regular fa-bell"></i>
+        <span class="notification-badge" id="topNavAlertBadge">3</span>
+      </button>
+
+      <!-- Profile -->
+      <div class="profile" id="userProfileBtn" title="Account Settings">
+        <div class="profile-images">
+          <img src="https://i.pravatar.cc/40?img=12" alt="Team Avatar">
+        </div>
+
+        <span>Team ResQAI</span>
+        <i class="fa-solid fa-chevron-down"></i>
+      </div>
+
+    </div>
+
+  </header>
+
+
+  <!-- ================= MAIN CONTENT DASHBOARD CONTAINER ================= -->
+  <main class="main-content">
+
+    <!-- ================= 1. HOME HERO DASHBOARD VIEW ================= -->
+    <section id="view-home" class="dashboard-view active">
+      
+      <div class="hero-canvas-container">
+        <!-- Left Hero Content Box with Soft Subtle Glass Backdrop -->
+        <div class="hero-content-box">
+          
+          <!-- Small Branding Tag -->
+          <div class="hero-brand-tag">
+            <i class="fa-solid fa-mountain-sun"></i>
+            <span>ResQAI</span>
+          </div>
+
+          <!-- Main Headline -->
+          <h1 class="hero-headline">
+            <span class="headline-nature">Nature Warns.</span>
+            <span class="headline-act">We Act.</span>
+          </h1>
+
+          <!-- Subtitle Description -->
+          <p class="hero-subtitle">
+            AI-Based Early Warning &amp;<br />
+            Landslide Risk Monitoring in<br />
+            North East India
+          </p>
+
+          <!-- Primary Hero CTA Button -->
+          <div class="hero-cta-wrapper">
+            <button class="hero-primary-btn" onclick="ResQApp.navigateTo('live-map')">
+              <span>View Live Map</span>
+              <i class="fa-solid fa-arrow-right"></i>
+            </button>
+          </div>
+
+        </div>
+      </div>
+
+    </section>
+
+
+    <!-- ================= 2. LIVE MAP VIEW ================= -->
+    <section id="view-live-map" class="dashboard-view">
+      
+      <!-- Live Map Header & Controls -->
+      <div class="view-header map-header-wrap">
+        <div>
+          <span class="header-tag"><i class="fa-solid fa-earth-asia"></i> GIS Threat Radar &bull; North East Region</span>
+          <h2 class="view-title">Live Risk Map</h2>
+          <p class="view-subtitle">Monitor landslide risk zones and real-time geological sensor arrays across North East India.</p>
+        </div>
+        
+        <div class="map-toolbar">
+          <!-- State Filter Dropdown -->
+          <div class="custom-select-wrap">
+            <i class="fa-solid fa-filter"></i>
+            <select id="mapStateFilter" aria-label="Filter by State">
+              <option value="all">All 8 Northeast States</option>
+              <option value="Assam">Assam</option>
+              <option value="Arunachal Pradesh">Arunachal Pradesh</option>
+              <option value="Sikkim">Sikkim</option>
+              <option value="Meghalaya">Meghalaya</option>
+              <option value="Manipur">Manipur</option>
+              <option value="Mizoram">Mizoram</option>
+              <option value="Nagaland">Nagaland</option>
+              <option value="Tripura">Tripura</option>
+            </select>
+          </div>
+
+          <!-- Risk Filter Pills -->
+          <div class="risk-filter-pills">
+            <button class="risk-pill active" data-risk="all">All (8)</button>
+            <button class="risk-pill critical" data-risk="critical">🔴 Critical (2)</button>
+            <button class="risk-pill high" data-risk="high">🟠 High (2)</button>
+            <button class="risk-pill moderate" data-risk="moderate">🟡 Moderate (2)</button>
+            <button class="risk-pill low" data-risk="low">🟢 Low (2)</button>
+          </div>
+
+          <!-- Reset Map View Button -->
+          <button class="btn btn-secondary btn-sm" id="mapResetViewBtn" title="Reset map to Northeast India center">
+            <i class="fa-solid fa-arrows-rotate"></i> Reset
+          </button>
+        </div>
+      </div>
+
+      <!-- Map Layout Container -->
+      <div class="map-container-layout">
+        
+        <!-- Main Map Viewing Canvas -->
+        <div class="glass-card map-view-card">
+          <div id="leafletMap" class="interactive-map"></div>
+
+          <!-- Map Legend Overlay -->
+          <div class="map-legend-overlay">
+            <div class="legend-title"><i class="fa-solid fa-layer-group"></i> Hazard Severity</div>
+            <div class="legend-items">
+              <span class="legend-item"><span class="legend-dot critical"></span> Critical (&gt;80%)</span>
+              <span class="legend-item"><span class="legend-dot high"></span> High (65-80%)</span>
+              <span class="legend-item"><span class="legend-dot moderate"></span> Moderate (40-65%)</span>
+              <span class="legend-item"><span class="legend-dot low"></span> Low (&lt;40%)</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Location Details Inspection Panel -->
+        <div class="glass-card station-drawer" id="stationDetailDrawer">
+          
+          <!-- Empty Selection State -->
+          <div class="drawer-placeholder" id="drawerPlaceholder">
+            <div class="drawer-placeholder-icon"><i class="fa-solid fa-crosshairs"></i></div>
+            <h4>Select a Sensor Node</h4>
+            <p>Click any risk marker across Northeast India to view live borehole displacement, 24h rainfall, soil saturation, and emergency safety directives.</p>
+          </div>
+
+          <!-- Active Selection Content -->
+          <div class="drawer-content" id="drawerContent" style="display: none;">
+            
+            <div class="drawer-header">
+              <div>
+                <span class="drawer-badge" id="drawerRiskBadge">CRITICAL RISK</span>
+                <h3 class="drawer-station-name" id="drawerStationName">Haflong Hill Station Array</h3>
+                <span class="drawer-location" id="drawerStationLocation"><i class="fa-solid fa-location-dot"></i> Dima Hasao, Assam</span>
+              </div>
+              <button class="btn-icon" id="closeDrawerBtn" title="Close Panel"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+
+            <!-- Probability Meter -->
+            <div class="drawer-prob-box">
+              <div class="drawer-prob-header">
+                <span><i class="fa-solid fa-brain"></i> AI Hazard Probability</span>
+                <strong id="drawerProbVal">88%</strong>
+              </div>
+              <div class="drawer-prob-bar">
+                <div class="drawer-prob-fill" id="drawerProbFill" style="width: 88%;"></div>
+              </div>
+            </div>
+
+            <!-- Telemetry Metrics Grid -->
+            <div class="drawer-metrics-grid">
+              <div class="drawer-metric">
+                <span class="m-label"><i class="fa-solid fa-cloud-showers-heavy"></i> 24h Rainfall</span>
+                <strong class="m-val" id="drawerRainfall">174.5 mm</strong>
+              </div>
+              <div class="drawer-metric">
+                <span class="m-label"><i class="fa-solid fa-droplet"></i> Soil Moisture</span>
+                <strong class="m-val" id="drawerMoisture">89.2%</strong>
+              </div>
+              <div class="drawer-metric">
+                <span class="m-label"><i class="fa-solid fa-chart-line"></i> Ground Drift</span>
+                <strong class="m-val" id="drawerDisplacement">18.4 mm/h</strong>
+              </div>
+              <div class="drawer-metric">
+                <span class="m-label"><i class="fa-solid fa-mountain"></i> Slope Angle</span>
+                <strong class="m-val" id="drawerSlope">42°</strong>
+              </div>
+              <div class="drawer-metric">
+                <span class="m-label"><i class="fa-solid fa-gauge-high"></i> Pore Pressure</span>
+                <strong class="m-val" id="drawerPore">34.2 kPa</strong>
+              </div>
+              <div class="drawer-metric">
+                <span class="m-label"><i class="fa-solid fa-temperature-half"></i> Temperature</span>
+                <strong class="m-val" id="drawerTemp">18.2°C</strong>
+              </div>
+            </div>
+
+            <!-- Last Updated Time -->
+            <div class="drawer-updated-row">
+              <span><i class="fa-regular fa-clock"></i> Last Telemetry Ping:</span>
+              <strong id="drawerLastUpdated">Just now (Live Stream)</strong>
+            </div>
+
+            <!-- Recommended Emergency Directive -->
+            <div class="drawer-directive-box">
+              <div class="directive-title"><i class="fa-solid fa-shield-halved"></i> Recommended Disaster Protocol</div>
+              <p id="drawerAdvisory">Critical slope creep detected along NH-54 section. Immediate evacuation recommended.</p>
+            </div>
+
+            <!-- Action Button -->
+            <div class="drawer-action-row">
+              <button class="btn btn-primary btn-block" id="drawerAnalyzeBtn">
+                <i class="fa-solid fa-chart-simple"></i> View Deep Telemetry & Charts
+              </button>
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
+
+    </section>
+
+
+    <!-- ================= 3. RISK MONITORING VIEW ================= -->
+    <section id="view-risk-monitoring" class="dashboard-view">
+      
+      <!-- Page Header & Controls -->
+      <div class="view-header monitoring-header-wrap">
+        <div>
+          <span class="header-tag"><i class="fa-solid fa-wave-square"></i> Real-Time Sensor Telemetry & ML Forecasting</span>
+          <h2 class="view-title">Risk Monitoring</h2>
+          <p class="view-subtitle">Analyze landslide risk indicators and regional hazard conditions across North East India.</p>
+        </div>
+
+        <!-- Station Selector & Time Range Controls -->
+        <div class="monitoring-controls-bar">
+          <div class="monitoring-station-selector">
+            <label for="monitoringStationSelect"><i class="fa-solid fa-satellite-dish"></i> Sensor Station:</label>
+            <select id="monitoringStationSelect" class="form-select">
+              <!-- Populated dynamically -->
+            </select>
+          </div>
+
+          <div class="monitoring-time-pills">
+            <button class="time-pill" data-time="6h">6H</button>
+            <button class="time-pill active" data-time="24h">24H</button>
+            <button class="time-pill" data-time="7d">7D</button>
+            <button class="time-pill" data-time="30d">30D</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Station Risk Overview & Environmental Indicators Banner -->
+      <div class="glass-card monitoring-overview-card" id="monitoringStationBanner">
+        <!-- Rendered dynamically by app.js -->
+      </div>
+
+      <!-- 4 Core Telemetry Charts Grid -->
+      <div class="charts-2x2-grid">
+
+        <!-- Chart 1: AI Risk Trend & Probability Forecast -->
+        <div class="glass-card chart-card">
+          <div class="chart-header">
+            <div>
+              <h4 class="chart-title"><i class="fa-solid fa-brain"></i> AI Hazard Risk Trend & Forecast</h4>
+              <p class="chart-subtitle">Ensemble ML predictive hazard probability timeline (%)</p>
+            </div>
+            <span class="chart-badge danger" id="chartRiskBadge">High Risk Curve</span>
+          </div>
+          <div class="chart-canvas-wrapper">
+            <canvas id="probabilityChart"></canvas>
+          </div>
+        </div>
+
+        <!-- Chart 2: Rainfall vs Threshold -->
+        <div class="glass-card chart-card">
+          <div class="chart-header">
+            <div>
+              <h4 class="chart-title"><i class="fa-solid fa-cloud-showers-heavy"></i> 24h Cumulative Rainfall vs Safe Limit</h4>
+              <p class="chart-subtitle">Precipitation telemetry against critical trigger threshold (100 mm)</p>
+            </div>
+            <span class="chart-badge danger">Threshold Exceeded</span>
+          </div>
+          <div class="chart-canvas-wrapper">
+            <canvas id="rainfallChart"></canvas>
+          </div>
+        </div>
+
+        <!-- Chart 3: Soil Moisture Saturation Curve -->
+        <div class="glass-card chart-card">
+          <div class="chart-header">
+            <div>
+              <h4 class="chart-title"><i class="fa-solid fa-droplet"></i> Sub-Surface Soil Moisture Saturation</h4>
+              <p class="chart-subtitle">Pore water volumetric moisture level vs 80% shear failure limit</p>
+            </div>
+            <span class="chart-badge warning">Critical Pore Layer</span>
+          </div>
+          <div class="chart-canvas-wrapper">
+            <canvas id="soilMoistureChart"></canvas>
+          </div>
+        </div>
+
+        <!-- Chart 4: Ground Displacement Rate -->
+        <div class="glass-card chart-card">
+          <div class="chart-header">
+            <div>
+              <h4 class="chart-title"><i class="fa-solid fa-chart-line"></i> Inclinometer Ground Displacement Rate</h4>
+              <p class="chart-subtitle">Borehole slip sensor & GNSS surface drift velocity (mm/h)</p>
+            </div>
+            <span class="chart-badge danger">Active Shear Creep</span>
+          </div>
+          <div class="chart-canvas-wrapper">
+            <canvas id="displacementChart"></canvas>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Bottom Split Grid: High-Risk Locations Table + Regional Risk Distribution -->
+      <div class="monitoring-bottom-grid">
+
+        <!-- High-Risk Monitored Locations -->
+        <div class="glass-card content-card">
+          <div class="card-head">
+            <div>
+              <h3 class="card-title"><i class="fa-solid fa-triangle-exclamation"></i> Monitored Stations & Risk Rankings</h3>
+              <p class="card-desc">Ranked by AI landslide probability across Northeast India</p>
+            </div>
+            <span class="badge-neutral" id="monitoringLocationCount">8 Active Stations</span>
+          </div>
+
+          <div class="locations-table-responsive">
+            <table class="data-table" id="monitoringLocationsTable">
+              <thead>
+                <tr>
+                  <th>Station / Location</th>
+                  <th>State</th>
+                  <th>Risk Level</th>
+                  <th>Score</th>
+                  <th>Primary Hazard Factor</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody id="monitoringLocationsTableBody">
+                <!-- Rendered dynamically by app.js -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Regional Risk Distribution Card -->
+        <div class="glass-card content-card risk-distribution-card">
+          <div class="card-head">
+            <div>
+              <h3 class="card-title"><i class="fa-solid fa-chart-pie"></i> Regional Risk Distribution</h3>
+              <p class="card-desc">Hazard proportion across all 8 monitored states</p>
+            </div>
+          </div>
+
+          <div class="risk-distribution-body">
+            <!-- Risk Progress Bars -->
+            <div class="dist-stat-row">
+              <div class="dist-stat-header">
+                <span class="dist-label"><span class="legend-dot critical"></span> Critical Risk (&gt;80%)</span>
+                <strong>2 Stations (25%)</strong>
+              </div>
+              <div class="dist-progress-bar"><div class="dist-fill critical" style="width: 25%;"></div></div>
+            </div>
+
+            <div class="dist-stat-row">
+              <div class="dist-stat-header">
+                <span class="dist-label"><span class="legend-dot high"></span> High Risk (65-80%)</span>
+                <strong>2 Stations (25%)</strong>
+              </div>
+              <div class="dist-progress-bar"><div class="dist-fill high" style="width: 25%;"></div></div>
+            </div>
+
+            <div class="dist-stat-row">
+              <div class="dist-stat-header">
+                <span class="dist-label"><span class="legend-dot moderate"></span> Moderate Risk (40-65%)</span>
+                <strong>2 Stations (25%)</strong>
+              </div>
+              <div class="dist-progress-bar"><div class="dist-fill moderate" style="width: 25%;"></div></div>
+            </div>
+
+            <div class="dist-stat-row">
+              <div class="dist-stat-header">
+                <span class="dist-label"><span class="legend-dot low"></span> Low Risk (&lt;40%)</span>
+                <strong>2 Stations (25%)</strong>
+              </div>
+              <div class="dist-progress-bar"><div class="dist-fill low" style="width: 25%;"></div></div>
+            </div>
+
+            <!-- Summary Insight Box -->
+            <div class="risk-dist-insight">
+              <i class="fa-solid fa-shield-halved"></i>
+              <div>
+                <strong>High Threat Density in 4 States</strong>
+                <p>Assam (Dima Hasao), Sikkim (Mangan), Meghalaya (East Khasi), and Manipur (Noney) exhibit heavy rainfall exceeding safe slope thresholds.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+    </section>
+
+
+    <!-- ================= 4. ALERTS VIEW ================= -->
+    <section id="view-alerts" class="dashboard-view">
+
+      <!-- Page Header -->
+      <div class="view-header">
+        <div>
+          <span class="header-tag"><i class="fa-solid fa-triangle-exclamation"></i> Emergency Early Warnings</span>
+          <h2 class="view-title">Alerts &amp; Early Warnings</h2>
+          <p class="view-subtitle">Monitor active landslide warnings and hazard notifications across North East India.</p>
+        </div>
+      </div>
+
+      <!-- Alert Summary KPI Strip -->
+      <div class="alert-summary-strip">
+        <div class="alert-summary-card critical-summary">
+          <div class="alert-summary-icon critical"><i class="fa-solid fa-circle-radiation"></i></div>
+          <div class="alert-summary-info">
+            <span class="alert-summary-count" id="summCritical">2</span>
+            <span class="alert-summary-label">Critical Alerts</span>
+          </div>
+        </div>
+        <div class="alert-summary-card high-summary">
+          <div class="alert-summary-icon high"><i class="fa-solid fa-triangle-exclamation"></i></div>
+          <div class="alert-summary-info">
+            <span class="alert-summary-count" id="summHigh">2</span>
+            <span class="alert-summary-label">High Risk Alerts</span>
+          </div>
+        </div>
+        <div class="alert-summary-card moderate-summary">
+          <div class="alert-summary-icon moderate"><i class="fa-solid fa-shield-halved"></i></div>
+          <div class="alert-summary-info">
+            <span class="alert-summary-count" id="summModerate">2</span>
+            <span class="alert-summary-label">Moderate Alerts</span>
+          </div>
+        </div>
+        <div class="alert-summary-card total-summary">
+          <div class="alert-summary-icon total"><i class="fa-solid fa-bell"></i></div>
+          <div class="alert-summary-info">
+            <span class="alert-summary-count" id="summTotal">6</span>
+            <span class="alert-summary-label">Total Active</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Controls Bar: Search + Filters -->
+      <div class="alerts-control-bar">
+        <div class="alert-search-box">
+          <i class="fa-solid fa-magnifying-glass"></i>
+          <input type="text" id="alertSearchInput" placeholder="Search by location, state, or keyword…">
+        </div>
+
+        <div class="alert-severity-filters">
+          <button class="alert-filter-btn active" data-severity="all">All <span class="filter-count" id="countAllAlerts">6</span></button>
+          <button class="alert-filter-btn" data-severity="critical"><span class="filter-dot critical"></span> Critical <span class="filter-count" id="countCriticalAlerts">2</span></button>
+          <button class="alert-filter-btn" data-severity="high"><span class="filter-dot high"></span> High <span class="filter-count" id="countHighAlerts">2</span></button>
+          <button class="alert-filter-btn" data-severity="moderate"><span class="filter-dot moderate"></span> Moderate <span class="filter-count" id="countModerateAlerts">2</span></button>
+          <button class="alert-filter-btn" data-severity="low"><span class="filter-dot low"></span> Low <span class="filter-count" id="countLowAlerts">0</span></button>
+        </div>
+      </div>
+
+      <!-- Alerts Feed -->
+      <div class="alerts-feed-container" id="alertsFeedContainer">
+        <!-- Rendered dynamically by app.js -->
+      </div>
+
+      <!-- Alert Detail Modal Overlay -->
+      <div class="alert-detail-overlay" id="alertDetailOverlay">
+        <div class="alert-detail-modal">
+          <div class="alert-modal-header" id="alertModalHeader">
+            <div>
+              <span class="severity-badge" id="alertModalSeverity">CRITICAL</span>
+              <span class="alert-modal-status" id="alertModalStatus">Active</span>
+            </div>
+            <button class="alert-modal-close" onclick="ResQApp.closeAlertModal()"><i class="fa-solid fa-xmark"></i></button>
+          </div>
+
+          <div class="alert-modal-body">
+            <h3 id="alertModalTitle">Alert Title</h3>
+            <p class="alert-modal-id" id="alertModalId">ALT-2026-089</p>
+
+            <!-- Location & Time -->
+            <div class="alert-modal-meta-grid">
+              <div class="alert-modal-meta-item">
+                <i class="fa-solid fa-location-dot"></i>
+                <div>
+                  <span class="meta-label">Location</span>
+                  <span class="meta-value" id="alertModalLocation">—</span>
+                </div>
+              </div>
+              <div class="alert-modal-meta-item">
+                <i class="fa-solid fa-crosshairs"></i>
+                <div>
+                  <span class="meta-label">Coordinates</span>
+                  <span class="meta-value" id="alertModalCoords">—</span>
+                </div>
+              </div>
+              <div class="alert-modal-meta-item">
+                <i class="fa-regular fa-clock"></i>
+                <div>
+                  <span class="meta-label">Issued</span>
+                  <span class="meta-value" id="alertModalTime">—</span>
+                </div>
+              </div>
+              <div class="alert-modal-meta-item">
+                <i class="fa-solid fa-gauge-high"></i>
+                <div>
+                  <span class="meta-label">Risk Probability</span>
+                  <span class="meta-value" id="alertModalProb">—</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Telemetry Indicators -->
+            <h4 class="alert-modal-section-title"><i class="fa-solid fa-satellite-dish"></i> Sensor Telemetry</h4>
+            <div class="alert-modal-telemetry" id="alertModalTelemetry">
+              <div class="telemetry-chip">
+                <span class="telemetry-label">Rainfall 24h</span>
+                <span class="telemetry-value" id="alertTelRainfall">—</span>
+              </div>
+              <div class="telemetry-chip">
+                <span class="telemetry-label">Soil Moisture</span>
+                <span class="telemetry-value" id="alertTelSoil">—</span>
+              </div>
+              <div class="telemetry-chip">
+                <span class="telemetry-label">Displacement</span>
+                <span class="telemetry-value" id="alertTelDisplacement">—</span>
+              </div>
+              <div class="telemetry-chip">
+                <span class="telemetry-label">Temperature</span>
+                <span class="telemetry-value" id="alertTelTemp">—</span>
+              </div>
+            </div>
+
+            <!-- Recommended Action -->
+            <h4 class="alert-modal-section-title"><i class="fa-solid fa-shield-halved"></i> Recommended Action</h4>
+            <div class="alert-modal-action-box" id="alertModalAction">
+              —
+            </div>
+
+            <!-- Modal Footer Actions -->
+            <div class="alert-modal-footer">
+              <button class="btn btn-primary" id="alertModalMapBtn" onclick="ResQApp.closeAlertModal()"><i class="fa-solid fa-map-location-dot"></i> View on Live Map</button>
+              <button class="btn btn-secondary" onclick="ResQApp.closeAlertModal()"><i class="fa-solid fa-xmark"></i> Close</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </section>
+
+
+    <!-- ================= 5. RESPONSE & RESCUE COORDINATOR VIEW ================= -->
+    <section id="view-response-center" class="dashboard-view">
+
+      <!-- 1. Page Header -->
+      <div class="view-header response-header-wrap">
+        <div>
+          <span class="header-tag"><i class="fa-solid fa-truck-medical"></i> Disaster Response &amp; Rescue Coordination</span>
+          <h2 class="view-title">Response &amp; Rescue Coordinator</h2>
+          <p class="view-subtitle">Coordinate emergency response teams, monitor active incidents and manage rescue operations across North East India.</p>
+        </div>
+
+        <div class="response-status-badge">
+          <span class="pulse-dot-red"></span>
+          <div class="response-status-details">
+            <span class="resp-status-sub">Command Center Status</span>
+            <strong>Response Operations Active</strong>
+          </div>
+        </div>
+      </div>
+
+      <!-- 2. Response Summary KPI Cards (4 Cards) -->
+      <div class="response-summary-grid">
+        
+        <!-- Card 1: Active Incidents -->
+        <div class="glass-card response-kpi-card">
+          <div class="response-kpi-header">
+            <span class="response-kpi-label">Active Incidents</span>
+            <div class="response-kpi-icon red"><i class="fa-solid fa-triangle-exclamation"></i></div>
+          </div>
+          <div class="response-kpi-value-row">
+            <span class="response-kpi-num" id="respKpiIncidents">12</span>
+            <span class="response-kpi-badge badge-danger">3 Critical</span>
+          </div>
+          <span class="response-kpi-sub"><i class="fa-solid fa-arrow-trend-up"></i> +2 reported in last 3h</span>
+        </div>
+
+        <!-- Card 2: Rescue Teams -->
+        <div class="glass-card response-kpi-card">
+          <div class="response-kpi-header">
+            <span class="response-kpi-label">Rescue Teams</span>
+            <div class="response-kpi-icon emerald"><i class="fa-solid fa-users-gear"></i></div>
+          </div>
+          <div class="response-kpi-value-row">
+            <span class="response-kpi-num" id="respKpiTeams">08</span>
+            <span class="response-kpi-badge badge-emerald">6 Deployed</span>
+          </div>
+          <span class="response-kpi-sub"><i class="fa-solid fa-circle-check"></i> 2 Teams on Standby</span>
+        </div>
+
+        <!-- Card 3: Personnel Deployed -->
+        <div class="glass-card response-kpi-card">
+          <div class="response-kpi-header">
+            <span class="response-kpi-label">Personnel Deployed</span>
+            <div class="response-kpi-icon cyan"><i class="fa-solid fa-person-military-pointing"></i></div>
+          </div>
+          <div class="response-kpi-value-row">
+            <span class="response-kpi-num" id="respKpiPersonnel">46</span>
+            <span class="response-kpi-badge badge-cyan">SDRF / NDRF / BRO</span>
+          </div>
+          <span class="response-kpi-sub"><i class="fa-solid fa-shield-halved"></i> 100% Comms Connected</span>
+        </div>
+
+        <!-- Card 4: Resources Required -->
+        <div class="glass-card response-kpi-card">
+          <div class="response-kpi-header">
+            <span class="response-kpi-label">Resources Required</span>
+            <div class="response-kpi-icon orange"><i class="fa-solid fa-boxes-stacked"></i></div>
+          </div>
+          <div class="response-kpi-value-row">
+            <span class="response-kpi-num" id="respKpiResources">05</span>
+            <span class="response-kpi-badge badge-warning">Action Req.</span>
+          </div>
+          <span class="response-kpi-sub"><i class="fa-solid fa-truck-ramp-box"></i> Excavators &amp; ICU Units</span>
+        </div>
+
+      </div>
+
+      <!-- 3. Main Response Layout: Incidents on Left, Teams & Resources on Right -->
+      <div class="response-main-layout">
+
+        <!-- LEFT COLUMN: Active & Priority Incidents Feed -->
+        <div class="response-incidents-col">
+
+          <div class="glass-card response-feed-panel">
+            
+            <div class="response-feed-head">
+              <div>
+                <h3 class="card-title"><i class="fa-solid fa-fire-flame-curved"></i> Active &amp; Priority Incidents</h3>
+                <p class="card-desc">Prioritized emergency events requiring SAR, containment, and evacuation</p>
+              </div>
+
+              <div class="status-select-wrapper">
+                <select id="incidentStatusSelect" class="incident-status-select" onchange="ResQApp.filterIncidentsByStatus(this.value)">
+                  <option value="all">All Response Statuses</option>
+                  <option value="active" selected>Active Operations Only</option>
+                  <option value="rescue-in-progress">Rescue In Progress</option>
+                  <option value="team-en-route">Team En Route</option>
+                  <option value="evacuation-in-progress">Evacuation In Progress</option>
+                  <option value="awaiting-response">Awaiting Response</option>
+                  <option value="resolved">Resolved</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Incidents Search & Severity Filter Bar -->
+            <div class="incident-controls-bar">
+              <div class="incident-search-box">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <input type="text" id="incidentSearchInput" placeholder="Search by ID, location, district, or disaster type…" />
+              </div>
+
+              <div class="incident-severity-filters">
+                <button class="incident-filter-btn active" data-severity="all">All <span class="filter-count" id="countAllIncidents">12</span></button>
+                <button class="incident-filter-btn" data-severity="critical"><span class="filter-dot critical"></span> Critical <span class="filter-count" id="countCriticalIncidents">3</span></button>
+                <button class="incident-filter-btn" data-severity="high"><span class="filter-dot high"></span> High <span class="filter-count" id="countHighIncidents">4</span></button>
+                <button class="incident-filter-btn" data-severity="moderate"><span class="filter-dot moderate"></span> Moderate <span class="filter-count" id="countModerateIncidents">3</span></button>
+                <button class="incident-filter-btn" data-severity="low"><span class="filter-dot low"></span> Low <span class="filter-count" id="countLowIncidents">2</span></button>
+              </div>
+            </div>
+
+            <!-- Incidents Feed Container -->
+            <div class="response-incidents-feed" id="responseIncidentsFeed">
+              <!-- Rendered dynamically by app.js -->
+            </div>
+
+          </div>
+
+        </div>
+
+        <!-- RIGHT COLUMN: Rescue Teams & Emergency Resources -->
+        <div class="response-side-col">
+
+          <!-- Rescue Teams Command Roster -->
+          <div class="glass-card response-side-card">
+            <div class="card-head">
+              <div>
+                <h3 class="card-title"><i class="fa-solid fa-users-gear"></i> Rescue Teams Command Roster</h3>
+                <p class="card-desc">Real-time status of SDRF, NDRF, and BRO disaster response units</p>
+              </div>
+              <span class="badge badge-emerald" id="rosterActiveTeamsCount">8 Teams</span>
+            </div>
+
+            <div class="rescue-teams-list" id="rescueTeamsList">
+              <!-- Rendered dynamically by app.js -->
+            </div>
+          </div>
+
+          <!-- Emergency Resource Allocation -->
+          <div class="glass-card response-side-card">
+            <div class="card-head">
+              <div>
+                <h3 class="card-title"><i class="fa-solid fa-boxes-stacked"></i> Emergency Resources</h3>
+                <p class="card-desc">Availability &amp; logistical deployment hub status</p>
+              </div>
+              <span class="badge badge-warning">5 Required</span>
+            </div>
+
+            <div class="emergency-resources-list" id="emergencyResourcesList">
+              <!-- Rendered dynamically by app.js -->
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+
+      <!-- Incident Detail & Response Workflow Modal Overlay -->
+      <div class="incident-modal-overlay" id="incidentModalOverlay">
+        <div class="incident-detail-modal">
+          
+          <div class="incident-modal-header" id="incidentModalHeader">
+            <div>
+              <div class="incident-modal-tags">
+                <span class="severity-badge" id="incModalSeverity">CRITICAL</span>
+                <span class="incident-type-tag" id="incModalType">Landslide</span>
+                <span class="incident-status-tag" id="incModalStatus">Rescue In Progress</span>
+              </div>
+              <h3 class="incident-modal-title" id="incModalTitle">Haflong Hill NH-54 Highway Slip</h3>
+              <p class="incident-modal-id" id="incModalId">INC-2026-101</p>
+            </div>
+            <button class="incident-modal-close" onclick="ResQApp.closeIncidentModal()"><i class="fa-solid fa-xmark"></i></button>
+          </div>
+
+          <div class="incident-modal-body">
+
+            <!-- Visual Response Workflow Timeline (6 Stages) -->
+            <div class="workflow-section">
+              <h4 class="incident-modal-section-title"><i class="fa-solid fa-arrows-split-up-and-left"></i> Response Workflow Progression</h4>
+              
+              <div class="workflow-timeline" id="incModalWorkflowTimeline">
+                <!-- 6 Stages dynamically populated by app.js with current stage highlighted -->
+              </div>
+            </div>
+
+            <!-- Incident Location & Geo-Metadata Grid -->
+            <div class="incident-modal-meta-grid">
+              <div class="incident-modal-meta-item">
+                <i class="fa-solid fa-location-dot"></i>
+                <div>
+                  <span class="meta-label">Location</span>
+                  <span class="meta-value" id="incModalLocation">Lower Haflong, Dima Hasao (Assam)</span>
+                </div>
+              </div>
+              <div class="incident-modal-meta-item">
+                <i class="fa-solid fa-crosshairs"></i>
+                <div>
+                  <span class="meta-label">Coordinates</span>
+                  <span class="meta-value" id="incModalCoords">25.1764° N, 93.0175° E</span>
+                </div>
+              </div>
+              <div class="incident-modal-meta-item">
+                <i class="fa-solid fa-gauge-high"></i>
+                <div>
+                  <span class="meta-label">Risk Probability</span>
+                  <span class="meta-value" id="incModalRiskScore">88% Probability</span>
+                </div>
+              </div>
+              <div class="incident-modal-meta-item">
+                <i class="fa-solid fa-users"></i>
+                <div>
+                  <span class="meta-label">Estimated Pop. Exposed</span>
+                  <span class="meta-value" id="incModalExposed">1,250 residents</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Sensor Telemetry Strip -->
+            <h4 class="incident-modal-section-title"><i class="fa-solid fa-satellite-dish"></i> Incident Site Geotechnical Telemetry</h4>
+            <div class="incident-modal-telemetry">
+              <div class="telemetry-chip">
+                <span class="telemetry-label">Rainfall (24h)</span>
+                <span class="telemetry-value" id="incTelRainfall">174.5 mm</span>
+              </div>
+              <div class="telemetry-chip">
+                <span class="telemetry-label">Soil Moisture</span>
+                <span class="telemetry-value" id="incTelSoil">89.2%</span>
+              </div>
+              <div class="telemetry-chip">
+                <span class="telemetry-label">Ground Displacement</span>
+                <span class="telemetry-value" id="incTelDisplacement">18.4 mm/h</span>
+              </div>
+              <div class="telemetry-chip">
+                <span class="telemetry-label">Affected Perimeter</span>
+                <span class="telemetry-value" id="incTelArea">3.2 sq km</span>
+              </div>
+            </div>
+
+            <!-- Assigned Response Team & Lead -->
+            <h4 class="incident-modal-section-title"><i class="fa-solid fa-users-gear"></i> Assigned Response Team</h4>
+            <div class="incident-team-card" id="incModalTeamBox">
+              <div class="team-card-icon"><i class="fa-solid fa-shield-halved"></i></div>
+              <div class="team-card-details">
+                <h5 id="incModalTeamName">SDRF Unit Alpha-1 (Assam)</h5>
+                <p><span class="team-lead-label">Lead:</span> <strong id="incModalTeamLead">Capt. R. Saikia</strong> &bull; <span id="incModalTeamComms">VHF Ch-4 (433.5 MHz)</span></p>
+              </div>
+              <span class="badge badge-emerald" id="incModalTeamStatus">ON SITE</span>
+            </div>
+
+            <!-- Field Notes & Directives -->
+            <h4 class="incident-modal-section-title"><i class="fa-solid fa-clipboard-list"></i> Tactical Directives &amp; Field Notes</h4>
+            <div class="incident-notes-box" id="incModalNotes">
+              Severe slope failure blocked NH-54 arterial bypass. 4 light commercial vehicles trapped; SAR excavator deployed.
+            </div>
+
+          </div>
+
+          <!-- Modal Footer Actions -->
+          <div class="incident-modal-footer">
+            <button class="btn btn-primary" id="incModalMapBtn" onclick="ResQApp.viewIncidentOnMapFromModal()"><i class="fa-solid fa-map-location-dot"></i> View on Live Map</button>
+            <button class="btn btn-secondary" onclick="ResQApp.closeIncidentModal()"><i class="fa-solid fa-xmark"></i> Close</button>
+          </div>
+
+        </div>
+      </div>
+
+    </section>
+
+
+    <!-- ================= 6. REPORTS & DISASTER INTELLIGENCE VIEW ================= -->
+    <section id="view-reports" class="dashboard-view">
+      
+      <!-- 1. Page Header -->
+      <div class="view-header">
+        <div>
+          <span class="header-tag"><i class="fa-solid fa-chart-pie"></i> Historical &amp; Predictive Analytics</span>
+          <h2 class="view-title">Reports &amp; Disaster Intelligence</h2>
+          <p class="view-subtitle">Analyze historical hazards, rainfall patterns, alerts and disaster response activity across North East India.</p>
+        </div>
+
+        <div class="reports-header-actions">
+          <button class="btn btn-primary" id="openReportModalBtn"><i class="fa-solid fa-file-arrow-down"></i> Generate Full Report</button>
+        </div>
+      </div>
+
+      <!-- 2. Top Filter Bar -->
+      <div class="glass-card reports-filter-bar">
+        <div class="reports-filter-group">
+          <label class="filter-label"><i class="fa-regular fa-calendar"></i> Time Period</label>
+          <select id="reportFilterPeriod" class="filter-select">
+            <option value="monsoon-peak" selected>Past 30 Days (Monsoon Peak)</option>
+            <option value="past-24h">Past 24 Hours</option>
+            <option value="past-7d">Past 7 Days (Weekly Review)</option>
+            <option value="current-year">Current Year (2026)</option>
+            <option value="historical">Historical (All-Time Data)</option>
+          </select>
+        </div>
+
+        <div class="reports-filter-group">
+          <label class="filter-label"><i class="fa-solid fa-earth-asia"></i> State</label>
+          <select id="reportFilterState" class="filter-select" onchange="ResQApp.onReportStateChange(this.value)">
+            <option value="all" selected>All 8 States (North East)</option>
+            <option value="Assam">Assam</option>
+            <option value="Sikkim">Sikkim</option>
+            <option value="Meghalaya">Meghalaya</option>
+            <option value="Manipur">Manipur</option>
+            <option value="Arunachal Pradesh">Arunachal Pradesh</option>
+            <option value="Nagaland">Nagaland</option>
+            <option value="Mizoram">Mizoram</option>
+            <option value="Tripura">Tripura</option>
+          </select>
+        </div>
+
+        <div class="reports-filter-group">
+          <label class="filter-label"><i class="fa-solid fa-map-pin"></i> District</label>
+          <select id="reportFilterDistrict" class="filter-select">
+            <option value="all" selected>All Districts</option>
+            <option value="Dima Hasao">Dima Hasao (Assam)</option>
+            <option value="North Sikkim">North Sikkim (Sikkim)</option>
+            <option value="East Khasi Hills">East Khasi Hills (Meghalaya)</option>
+            <option value="Noney">Noney (Manipur)</option>
+            <option value="Tawang">Tawang (Arunachal)</option>
+            <option value="Kohima">Kohima (Nagaland)</option>
+            <option value="Aizawl">Aizawl (Mizoram)</option>
+            <option value="North Tripura">North Tripura (Tripura)</option>
+          </select>
+        </div>
+
+        <div class="reports-filter-group">
+          <label class="filter-label"><i class="fa-solid fa-triangle-exclamation"></i> Risk Level</label>
+          <select id="reportFilterRisk" class="filter-select">
+            <option value="all" selected>All Risk Levels</option>
+            <option value="critical">Critical Risk (Level 3)</option>
+            <option value="high">High Risk (Level 2)</option>
+            <option value="moderate">Moderate Risk (Level 1)</option>
+            <option value="low">Low Watch</option>
+          </select>
+        </div>
+
+        <div class="reports-filter-action">
+          <button class="btn btn-primary" onclick="ResQApp.applyReportsFilters()">
+            <i class="fa-solid fa-filter"></i> Apply Filters
+          </button>
+        </div>
+      </div>
+
+      <!-- 3. Summary Cards (4 Cards) -->
+      <div class="kpi-grid kpi-grid-4">
+        
+        <!-- Summary Card 1: Total Incidents -->
+        <div class="glass-card kpi-card">
+          <div class="kpi-header">
+            <span class="kpi-title">Total Incidents</span>
+            <div class="kpi-icon-wrap danger"><i class="fa-solid fa-triangle-exclamation"></i></div>
+          </div>
+          <div class="kpi-value-row">
+            <span class="kpi-value" id="repKpiTotalIncidents">128</span>
+            <span class="kpi-badge badge-danger"><i class="fa-solid fa-arrow-trend-up"></i> +18% vs prev</span>
+          </div>
+          <p class="kpi-meta">Recorded across 8 Northeast states during monitoring cycle</p>
+        </div>
+
+        <!-- Summary Card 2: Critical Alerts -->
+        <div class="glass-card kpi-card">
+          <div class="kpi-header">
+            <span class="kpi-title">Critical Alerts</span>
+            <div class="kpi-icon-wrap red"><i class="fa-solid fa-circle-radiation"></i></div>
+          </div>
+          <div class="kpi-value-row">
+            <span class="kpi-value" id="repKpiCriticalAlerts">24</span>
+            <span class="kpi-badge badge-emerald"><i class="fa-solid fa-shield-check"></i> 100% Lead Time</span>
+          </div>
+          <p class="kpi-meta">Early warning lead time averaged 4.2h prior to slope failure</p>
+        </div>
+
+        <!-- Summary Card 3: Affected Areas -->
+        <div class="glass-card kpi-card">
+          <div class="kpi-header">
+            <span class="kpi-title">Affected Areas</span>
+            <div class="kpi-icon-wrap cyan"><i class="fa-solid fa-map-location-dot"></i></div>
+          </div>
+          <div class="kpi-value-row">
+            <span class="kpi-value" id="repKpiAffectedAreas">67</span>
+            <span class="kpi-badge badge-cyan">16 Hill Districts</span>
+          </div>
+          <p class="kpi-meta">Vulnerable highway corridors &amp; inhabited slope zones</p>
+        </div>
+
+        <!-- Summary Card 4: Response Operations -->
+        <div class="glass-card kpi-card">
+          <div class="kpi-header">
+            <span class="kpi-title">Response Operations</span>
+            <div class="kpi-icon-wrap emerald"><i class="fa-solid fa-truck-medical"></i></div>
+          </div>
+          <div class="kpi-value-row">
+            <span class="kpi-value" id="repKpiResponseOps">94</span>
+            <span class="kpi-badge badge-emerald">Avg 18.4m Dispatch</span>
+          </div>
+          <p class="kpi-meta">SDRF, NDRF, and BRO SAR operations successfully completed</p>
+        </div>
+
+      </div>
+
+      <!-- 4. Landslide Incident Trend (Large Dual Chart) -->
+      <div class="reports-charts-grid">
+        
+        <!-- Monthly Landslides vs Rainfall Dual Chart -->
+        <div class="glass-card chart-card span-2">
+          <div class="chart-header">
+            <div>
+              <h4 class="chart-title"><i class="fa-solid fa-chart-column"></i> Landslide Incident Trend</h4>
+              <p class="chart-subtitle">Monthly comparison of landslide incidents and rainfall patterns across North East India</p>
+            </div>
+            <div class="chart-badge-group">
+              <span class="chart-badge primary"><i class="fa-solid fa-chart-line"></i> Annual Precipitation Correlation</span>
+            </div>
+          </div>
+          <div class="chart-canvas-wrapper tall">
+            <canvas id="historicalTrendChart"></canvas>
+          </div>
+        </div>
+
+        <!-- State-wise Incident Analysis -->
+        <div class="glass-card chart-card">
+          <div class="chart-header">
+            <div>
+              <h4 class="chart-title"><i class="fa-solid fa-chart-bar"></i> Incidents by State</h4>
+              <p class="chart-subtitle">Geological hazard frequency across all 8 sister states</p>
+            </div>
+            <span class="chart-badge secondary">All 8 States</span>
+          </div>
+          <div class="chart-canvas-wrapper">
+            <canvas id="stateDistributionChart"></canvas>
+          </div>
+        </div>
+
+        <!-- Alert Severity Breakdown -->
+        <div class="glass-card chart-card">
+          <div class="chart-header">
+            <div>
+              <h4 class="chart-title"><i class="fa-solid fa-chart-pie"></i> Alert Severity Breakdown</h4>
+              <p class="chart-subtitle">Proportional distribution of early warning threat levels</p>
+            </div>
+            <span class="chart-badge danger">Critical Emphasized</span>
+          </div>
+          <div class="chart-canvas-wrapper">
+            <canvas id="severityDoughnutChart"></canvas>
+          </div>
+        </div>
+
+        <!-- Regional Risk Distribution -->
+        <div class="glass-card chart-card span-2">
+          <div class="chart-header">
+            <div>
+              <h4 class="chart-title"><i class="fa-solid fa-shield-halved"></i> Regional Risk Distribution</h4>
+              <p class="chart-subtitle">Comprehensive territorial vulnerability breakdown across surveyed slopes in North East India</p>
+            </div>
+          </div>
+
+          <div class="regional-risk-strip">
+            <div class="risk-segment-card critical">
+              <div class="risk-segment-head">
+                <span class="risk-seg-title">Critical Risk (Level 3)</span>
+                <span class="risk-seg-pct">18%</span>
+              </div>
+              <div class="risk-seg-bar"><div class="risk-seg-fill critical" style="width: 18%;"></div></div>
+              <p class="risk-seg-desc">Dima Hasao (Assam), Mangan (Sikkim) &bull; Immediate evacuation zones</p>
+            </div>
+
+            <div class="risk-segment-card high">
+              <div class="risk-segment-head">
+                <span class="risk-seg-title">High Risk (Level 2)</span>
+                <span class="risk-seg-pct">26%</span>
+              </div>
+              <div class="risk-seg-bar"><div class="risk-seg-fill high" style="width: 26%;"></div></div>
+              <p class="risk-seg-desc">East Khasi Hills (Meghalaya), Noney (Manipur) &bull; Continuous sensor surveillance</p>
+            </div>
+
+            <div class="risk-segment-card moderate">
+              <div class="risk-segment-head">
+                <span class="risk-seg-title">Moderate Risk (Level 1)</span>
+                <span class="risk-seg-pct">34%</span>
+              </div>
+              <div class="risk-seg-bar"><div class="risk-seg-fill moderate" style="width: 34%;"></div></div>
+              <p class="risk-seg-desc">Tawang (Arunachal), Kohima (Nagaland) &bull; Highway patrol monitoring</p>
+            </div>
+
+            <div class="risk-segment-card low">
+              <div class="risk-segment-head">
+                <span class="risk-seg-title">Low Watch</span>
+                <span class="risk-seg-pct">22%</span>
+              </div>
+              <div class="risk-seg-bar"><div class="risk-seg-fill low" style="width: 22%;"></div></div>
+              <p class="risk-seg-desc">Aizawl (Mizoram), North Tripura &bull; Baseline geological stability</p>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- 5. Dedicated Response Operations & Rescue Analytics Section -->
+      <div class="glass-card response-analytics-section">
+        <div class="card-head">
+          <div>
+            <h3 class="card-title"><i class="fa-solid fa-truck-medical"></i> Response Operations &amp; Rescue Effectiveness</h3>
+            <p class="card-desc">End-to-end performance tracking connecting early warnings to incident mitigation and resolution</p>
+          </div>
+          <button class="btn btn-sm btn-ghost" onclick="ResQApp.navigateTo('response-center')">
+            Open Response Center <i class="fa-solid fa-arrow-right"></i>
+          </button>
+        </div>
+
+        <!-- Workflow Pipeline Connection Banner -->
+        <div class="workflow-pipeline-banner">
+          <div class="pipeline-step"><span class="pipe-num">1</span><span>Environmental Data</span></div>
+          <i class="fa-solid fa-chevron-right pipe-arrow"></i>
+          <div class="pipeline-step"><span class="pipe-num">2</span><span>Risk Detection</span></div>
+          <i class="fa-solid fa-chevron-right pipe-arrow"></i>
+          <div class="pipeline-step"><span class="pipe-num">3</span><span>Early Warning</span></div>
+          <i class="fa-solid fa-chevron-right pipe-arrow"></i>
+          <div class="pipeline-step"><span class="pipe-num">4</span><span>Alert Generated</span></div>
+          <i class="fa-solid fa-chevron-right pipe-arrow"></i>
+          <div class="pipeline-step"><span class="pipe-num">5</span><span>Incident Identified</span></div>
+          <i class="fa-solid fa-chevron-right pipe-arrow"></i>
+          <div class="pipeline-step"><span class="pipe-num">6</span><span>Response Team</span></div>
+          <i class="fa-solid fa-chevron-right pipe-arrow"></i>
+          <div class="pipeline-step"><span class="pipe-num">7</span><span>Rescue Operation</span></div>
+          <i class="fa-solid fa-chevron-right pipe-arrow"></i>
+          <div class="pipeline-step active"><span class="pipe-num">8</span><span>Incident Resolved</span></div>
+        </div>
+
+        <!-- Response Metrics Grid -->
+        <div class="response-metrics-grid">
+          <div class="response-metric-item">
+            <span class="resp-m-label">Alerts Requiring Response</span>
+            <strong class="resp-m-val">42 Alerts</strong>
+            <span class="resp-m-sub">32.8% of total generated alerts</span>
+          </div>
+
+          <div class="response-metric-item">
+            <span class="resp-m-label">Rescue Teams Deployed</span>
+            <strong class="resp-m-val">38 Deployments</strong>
+            <span class="resp-m-sub">SDRF, NDRF &amp; BRO Taskforces</span>
+          </div>
+
+          <div class="response-metric-item">
+            <span class="resp-m-label">Incidents Resolved</span>
+            <strong class="resp-m-val">89 Resolved</strong>
+            <span class="resp-m-sub">94.7% mission resolution rate</span>
+          </div>
+
+          <div class="response-metric-item">
+            <span class="resp-m-label">Average Response Dispatch</span>
+            <strong class="resp-m-val">18.4 mins</strong>
+            <span class="resp-m-sub">Benchmark: &lt; 25 mins</span>
+          </div>
+        </div>
+      </div>
+
+    </section>
+
+
+    <!-- ================= 6. SETTINGS VIEW ================= -->
+    <section id="view-settings" class="dashboard-view">
+      
+      <div class="view-header">
+        <div>
+          <span class="header-tag"><i class="fa-solid fa-gear"></i> System Preferences</span>
+          <h2 class="view-title">Settings</h2>
+          <p class="view-subtitle">Manage dashboard preferences, notifications, map display and user experience.</p>
+        </div>
+
+        <div class="settings-header-actions">
+          <button class="btn btn-outline" id="resetSettingsBtnTop" onclick="ResQApp.resetSettings()"><i class="fa-solid fa-rotate-left"></i> Reset to Default</button>
+          <button class="btn btn-primary" id="saveSettingsBtnTop" onclick="ResQApp.saveUserSettings()"><i class="fa-solid fa-floppy-disk"></i> Save Changes</button>
+        </div>
+      </div>
+
+      <!-- 1. Profile & Account Card -->
+      <div class="glass-card settings-profile-card">
+        <div class="profile-card-content">
+          <div class="profile-avatar-wrap">
+            <div class="profile-avatar-circle">
+              <i class="fa-solid fa-shield-halved"></i>
+            </div>
+            <span class="profile-status-indicator" title="Active Officer Session"></span>
+          </div>
+
+          <div class="profile-info-block">
+            <div class="profile-info-header">
+              <div class="profile-name-group">
+                <h3 class="profile-display-name" id="profileDispName">Team ResQAI</h3>
+                <span class="profile-role-badge" id="profileDispRole"><i class="fa-solid fa-user-check"></i> Disaster Response Coordinator</span>
+              </div>
+              <button class="btn btn-sm btn-outline" id="editProfileBtn" onclick="ResQApp.openProfileModal()">
+                <i class="fa-solid fa-user-pen"></i> Edit Profile
+              </button>
+            </div>
+
+            <div class="profile-details-grid">
+              <div class="profile-detail-item">
+                <span class="detail-label"><i class="fa-solid fa-building-shield"></i> Agency / Authority</span>
+                <span class="detail-val" id="profileDispAgency">State Disaster Management Authority (SDMA / NDMA)</span>
+              </div>
+              <div class="profile-detail-item">
+                <span class="detail-label"><i class="fa-solid fa-envelope"></i> Email Address</span>
+                <span class="detail-val" id="profileDispEmail">team@resqai.in</span>
+              </div>
+              <div class="profile-detail-item">
+                <span class="detail-label"><i class="fa-solid fa-phone"></i> Emergency Contact</span>
+                <span class="detail-val" id="profileDispPhone">+91 94350 12345</span>
+              </div>
+              <div class="profile-detail-item">
+                <span class="detail-label"><i class="fa-solid fa-map-location-dot"></i> Operational Zone</span>
+                <span class="detail-val" id="profileDispRegion">All 8 States (North East Region)</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Settings Cards Grid (2-Column Layout) -->
+      <div class="settings-grid">
+
+        <!-- Column 1: Notifications & Dashboard Preferences -->
+        <div class="settings-col">
+          
+          <!-- 2. Notification Preferences Card -->
+          <div class="glass-card settings-card">
+            <div class="settings-card-head">
+              <div class="settings-icon-title">
+                <div class="settings-card-icon notif"><i class="fa-solid fa-bell"></i></div>
+                <div>
+                  <h4 class="settings-card-title">Notification Preferences</h4>
+                  <p class="settings-card-subtitle">Configure alerts, early warnings, and emergency dispatch notices.</p>
+                </div>
+              </div>
+            </div>
+            
+            <div class="settings-options-list">
+              <!-- Critical Risk Alerts (Visually Prominent) -->
+              <div class="setting-toggle-row critical-alert-row">
+                <div class="setting-text-wrap">
+                  <div class="setting-title-with-badge">
+                    <strong>Critical Risk Alerts</strong>
+                    <span class="setting-priority-badge"><i class="fa-solid fa-circle-exclamation"></i> Immediate Priority</span>
+                  </div>
+                  <p class="setting-desc">Instant high-priority alerts for imminent landslide failure &amp; slope collapse warnings.</p>
+                </div>
+                <label class="switch switch-danger">
+                  <input type="checkbox" id="prefCriticalAlerts" checked>
+                  <span class="slider"></span>
+                </label>
+              </div>
+
+              <!-- High Risk Alerts -->
+              <div class="setting-toggle-row">
+                <div class="setting-text-wrap">
+                  <strong>High Risk Alerts</strong>
+                  <p class="setting-desc">Priority notifications for high-hazard slope acceleration and elevated saturation.</p>
+                </div>
+                <label class="switch">
+                  <input type="checkbox" id="prefHighAlerts" checked>
+                  <span class="slider"></span>
+                </label>
+              </div>
+
+              <!-- Early Warning Notifications -->
+              <div class="setting-toggle-row">
+                <div class="setting-text-wrap">
+                  <strong>Early Warning Notifications</strong>
+                  <p class="setting-desc">Advisory notifications providing 4 to 6-hour lead-time forecasts before slope shifts.</p>
+                </div>
+                <label class="switch">
+                  <input type="checkbox" id="prefEarlyWarnings" checked>
+                  <span class="slider"></span>
+                </label>
+              </div>
+
+              <!-- Rescue / Response Updates -->
+              <div class="setting-toggle-row">
+                <div class="setting-text-wrap">
+                  <strong>Rescue / Response Updates</strong>
+                  <p class="setting-desc">Status changes on SDRF/NDRF team deployments, mission milestones, and task resolution.</p>
+                </div>
+                <label class="switch">
+                  <input type="checkbox" id="prefResponseUpdates" checked>
+                  <span class="slider"></span>
+                </label>
+              </div>
+
+              <!-- Report Notifications -->
+              <div class="setting-toggle-row">
+                <div class="setting-text-wrap">
+                  <strong>Report Notifications</strong>
+                  <p class="setting-desc">Digest summaries, weekly situation overviews, and newly generated hazard briefings.</p>
+                </div>
+                <label class="switch">
+                  <input type="checkbox" id="prefReportNotifications" checked>
+                  <span class="slider"></span>
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <!-- 4. Dashboard Preferences Card -->
+          <div class="glass-card settings-card">
+            <div class="settings-card-head">
+              <div class="settings-icon-title">
+                <div class="settings-card-icon dashboard"><i class="fa-solid fa-table-columns"></i></div>
+                <div>
+                  <h4 class="settings-card-title">Dashboard Preferences</h4>
+                  <p class="settings-card-subtitle">Personalize layout spacing, overview modules, and default startup view.</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="settings-options-list">
+              <!-- Compact Dashboard -->
+              <div class="setting-toggle-row">
+                <div class="setting-text-wrap">
+                  <strong>Compact Dashboard</strong>
+                  <p class="setting-desc">Reduce padding and spacing for high-density monitoring displays.</p>
+                </div>
+                <label class="switch">
+                  <input type="checkbox" id="prefCompactDashboard">
+                  <span class="slider"></span>
+                </label>
+              </div>
+
+              <!-- Show Risk Summary -->
+              <div class="setting-toggle-row">
+                <div class="setting-text-wrap">
+                  <strong>Show Risk Summary</strong>
+                  <p class="setting-desc">Display aggregated 4-metric risk &amp; sensor summary cards on the overview.</p>
+                </div>
+                <label class="switch">
+                  <input type="checkbox" id="prefShowRiskSummary" checked>
+                  <span class="slider"></span>
+                </label>
+              </div>
+
+              <!-- Show Active Alerts -->
+              <div class="setting-toggle-row">
+                <div class="setting-text-wrap">
+                  <strong>Show Active Alerts</strong>
+                  <p class="setting-desc">Show real-time incident warning stream and notification feed on home view.</p>
+                </div>
+                <label class="switch">
+                  <input type="checkbox" id="prefShowActiveAlerts" checked>
+                  <span class="slider"></span>
+                </label>
+              </div>
+
+              <!-- Show Response Operations -->
+              <div class="setting-toggle-row">
+                <div class="setting-text-wrap">
+                  <strong>Show Response Operations</strong>
+                  <p class="setting-desc">Display active rescue teams, disaster incidents, and field coordinator cards.</p>
+                </div>
+                <label class="switch">
+                  <input type="checkbox" id="prefShowResponseOps" checked>
+                  <span class="slider"></span>
+                </label>
+              </div>
+
+              <!-- Show Regional Risk Information -->
+              <div class="setting-toggle-row">
+                <div class="setting-text-wrap">
+                  <strong>Show Regional Risk Information</strong>
+                  <p class="setting-desc">Display state-by-state risk breakdown cards and territorial vulnerability indices.</p>
+                </div>
+                <label class="switch">
+                  <input type="checkbox" id="prefShowRegionalRisk" checked>
+                  <span class="slider"></span>
+                </label>
+              </div>
+
+              <!-- Default View on Startup -->
+              <div class="setting-select-row">
+                <div class="setting-text-wrap">
+                  <strong>Default Startup View</strong>
+                  <p class="setting-desc">Select which section opens when launching the dashboard.</p>
+                </div>
+                <select id="prefDefaultStartupView" class="form-control setting-select">
+                  <option value="home" selected>Home (Command Landing)</option>
+                  <option value="live-map">Live Map (GIS Telemetry)</option>
+                  <option value="risk">Risk Monitoring (Sensor Matrix)</option>
+                  <option value="alerts">Alerts &amp; Early Warnings</option>
+                  <option value="response-center">Response &amp; Rescue Coordinator</option>
+                  <option value="reports">Reports &amp; Intelligence</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Column 2: Map Preferences & Risk Visualization -->
+        <div class="settings-col">
+          
+          <!-- 3. Map Display Settings Card -->
+          <div class="glass-card settings-card">
+            <div class="settings-card-head">
+              <div class="settings-icon-title">
+                <div class="settings-card-icon map"><i class="fa-solid fa-map-location-dot"></i></div>
+                <div>
+                  <h4 class="settings-card-title">Map Preferences</h4>
+                  <p class="settings-card-subtitle">Customize GIS terrain layers, sensor markers, and environmental overlays.</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="settings-options-list">
+              <!-- Show Risk Markers -->
+              <div class="setting-toggle-row">
+                <div class="setting-text-wrap">
+                  <strong>Show Risk Markers</strong>
+                  <p class="setting-desc">Display interactive sensor nodes with color-coded severity risk pins.</p>
+                </div>
+                <label class="switch">
+                  <input type="checkbox" id="prefShowRiskMarkers" checked>
+                  <span class="slider"></span>
+                </label>
+              </div>
+
+              <!-- Show Rainfall Data -->
+              <div class="setting-toggle-row">
+                <div class="setting-text-wrap">
+                  <strong>Show Rainfall Data</strong>
+                  <p class="setting-desc">Overlay real-time Doppler radar precipitation intensity and 24h totals.</p>
+                </div>
+                <label class="switch">
+                  <input type="checkbox" id="prefShowRainfallData" checked>
+                  <span class="slider"></span>
+                </label>
+              </div>
+
+              <!-- Show Soil Moisture -->
+              <div class="setting-toggle-row">
+                <div class="setting-text-wrap">
+                  <strong>Show Soil Moisture</strong>
+                  <p class="setting-desc">Render sub-surface moisture saturation and pore-pressure telemetry points.</p>
+                </div>
+                <label class="switch">
+                  <input type="checkbox" id="prefShowSoilMoisture" checked>
+                  <span class="slider"></span>
+                </label>
+              </div>
+
+              <!-- Show Ground Movement -->
+              <div class="setting-toggle-row">
+                <div class="setting-text-wrap">
+                  <strong>Show Ground Movement</strong>
+                  <p class="setting-desc">Display borehole inclinometer displacement vectors and slope creep velocity.</p>
+                </div>
+                <label class="switch">
+                  <input type="checkbox" id="prefShowGroundMovement" checked>
+                  <span class="slider"></span>
+                </label>
+              </div>
+
+              <!-- Show Disaster Zones -->
+              <div class="setting-toggle-row">
+                <div class="setting-text-wrap">
+                  <strong>Show Disaster Zones</strong>
+                  <p class="setting-desc">Demarcate high-vulnerability hill corridors and active red warning zones.</p>
+                </div>
+                <label class="switch">
+                  <input type="checkbox" id="prefShowDisasterZones" checked>
+                  <span class="slider"></span>
+                </label>
+              </div>
+
+              <!-- Auto Refresh Map Data -->
+              <div class="setting-toggle-row">
+                <div class="setting-text-wrap">
+                  <strong>Auto Refresh Map Data</strong>
+                  <p class="setting-desc">Periodically poll environmental sensors and refresh geo-spatial data pins.</p>
+                </div>
+                <label class="switch">
+                  <input type="checkbox" id="prefAutoRefreshMap" checked>
+                  <span class="slider"></span>
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <!-- 5. Risk Visualization Card -->
+          <div class="glass-card settings-card">
+            <div class="settings-card-head">
+              <div class="settings-icon-title">
+                <div class="settings-card-icon risk"><i class="fa-solid fa-chart-pie"></i></div>
+                <div>
+                  <h4 class="settings-card-title">Risk Visualization</h4>
+                  <p class="settings-card-subtitle">Customize how hazard indices, severity levels, and trends are presented.</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="settings-options-list">
+              <!-- Risk Level Display -->
+              <div class="setting-select-row">
+                <div class="setting-text-wrap">
+                  <strong>Risk Level Display</strong>
+                  <p class="setting-desc">Preferred notation for communicating landslide threat levels.</p>
+                </div>
+                <select id="prefRiskLevelDisplay" class="form-control setting-select">
+                  <option value="both" selected>Both Badges &amp; Score %</option>
+                  <option value="badges">Severity Badges (Critical / High / Moderate)</option>
+                  <option value="numeric">Numerical Risk Percentage (0-100%)</option>
+                </select>
+              </div>
+
+              <!-- Risk Score Display -->
+              <div class="setting-toggle-row">
+                <div class="setting-text-wrap">
+                  <strong>Risk Score Display</strong>
+                  <p class="setting-desc">Show composite risk probability scores alongside sensor telemetry indicators.</p>
+                </div>
+                <label class="switch">
+                  <input type="checkbox" id="prefShowRiskScore" checked>
+                  <span class="slider"></span>
+                </label>
+              </div>
+
+              <!-- Risk Trend Charts -->
+              <div class="setting-toggle-row">
+                <div class="setting-text-wrap">
+                  <strong>Risk Trend Charts</strong>
+                  <p class="setting-desc">Display dual-axis historical precipitation and landslide occurrence charts.</p>
+                </div>
+                <label class="switch">
+                  <input type="checkbox" id="prefShowRiskTrendCharts" checked>
+                  <span class="slider"></span>
+                </label>
+              </div>
+
+              <!-- Alert Severity Indicators -->
+              <div class="setting-toggle-row">
+                <div class="setting-text-wrap">
+                  <strong>Alert Severity Indicators</strong>
+                  <p class="setting-desc">Enable animated glowing rings and pulsing visual dots on urgent alerts.</p>
+                </div>
+                <label class="switch">
+                  <input type="checkbox" id="prefAlertSeverityIndicators" checked>
+                  <span class="slider"></span>
+                </label>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+
+      <!-- Settings Bottom Save/Reset Actions Bar -->
+      <div class="glass-card settings-footer-bar">
+        <div class="settings-footer-info">
+          <i class="fa-solid fa-circle-check"></i>
+          <span>Preferences are automatically cached in your browser session. Click Save Changes to confirm.</span>
+        </div>
+        <div class="settings-footer-actions">
+          <button class="btn btn-outline" id="resetSettingsBtnBottom" onclick="ResQApp.resetSettings()">
+            <i class="fa-solid fa-rotate-left"></i> Reset to Default
+          </button>
+          <button class="btn btn-primary" id="saveSettingsBtnBottom" onclick="ResQApp.saveUserSettings()">
+            <i class="fa-solid fa-floppy-disk"></i> Save Changes
+          </button>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- ================= EDIT PROFILE MODAL ================= -->
+    <div class="modal-overlay" id="profileEditModalOverlay">
+      <div class="glass-card modal-box profile-modal-box">
+        <div class="modal-header">
+          <div class="modal-title-wrap">
+            <div class="modal-icon"><i class="fa-solid fa-user-pen"></i></div>
+            <div>
+              <h3>Edit Coordinator Profile</h3>
+              <p>Update officer identification and disaster response division details.</p>
+            </div>
+          </div>
+          <button class="btn-icon" id="closeProfileModalBtn" onclick="ResQApp.closeProfileModal()"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+
+        <div class="modal-body">
+          <div class="form-group">
+            <label>Coordinator / Team Name</label>
+            <input type="text" id="editProfileName" class="form-control" value="Team ResQAI">
+          </div>
+          <div class="form-group">
+            <label>Designated Role</label>
+            <input type="text" id="editProfileRole" class="form-control" value="Disaster Response Coordinator">
+          </div>
+          <div class="form-group">
+            <label>Agency / Organization</label>
+            <input type="text" id="editProfileAgency" class="form-control" value="State Disaster Management Authority (SDMA / NDMA)">
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Contact Email</label>
+              <input type="email" id="editProfileEmail" class="form-control" value="team@resqai.in">
+            </div>
+            <div class="form-group">
+              <label>Emergency Phone</label>
+              <input type="tel" id="editProfilePhone" class="form-control" value="+91 94350 12345">
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Primary Operational Region</label>
+            <select id="editProfileRegion" class="form-control">
+              <option value="All 8 States (North East Region)" selected>All 8 States (North East Region)</option>
+              <option value="Assam - Brahmaputra &amp; Barak Valleys">Assam - Brahmaputra &amp; Barak Valleys</option>
+              <option value="Sikkim - Eastern Himalayan Slopes">Sikkim - Eastern Himalayan Slopes</option>
+              <option value="Meghalaya - Khasi &amp; Garo Hills">Meghalaya - Khasi &amp; Garo Hills</option>
+              <option value="Manipur - Hill Corridors">Manipur - Hill Corridors</option>
+              <option value="Arunachal Pradesh - Frontier Ranges">Arunachal Pradesh - Frontier Ranges</option>
+              <option value="Nagaland - Naga Hills">Nagaland - Naga Hills</option>
+              <option value="Mizoram - Mizo Hills">Mizoram - Mizo Hills</option>
+              <option value="Tripura - Jampui Hills">Tripura - Jampui Hills</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button class="btn btn-outline" onclick="ResQApp.closeProfileModal()">Cancel</button>
+          <button class="btn btn-primary" onclick="ResQApp.saveProfileChanges()"><i class="fa-solid fa-check"></i> Update Profile</button>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+
+  <!-- ================= GENERATE REPORT MODAL ================= -->
+  <div class="modal-overlay" id="reportModalOverlay">
+    <div class="glass-card modal-box">
+      <div class="modal-header">
+        <div class="modal-title-wrap">
+          <div class="modal-icon"><i class="fa-solid fa-file-waveform"></i></div>
+          <div>
+            <h3>Generate Geo-Hazard &amp; Landslide Incident Brief</h3>
+            <p>Generate a consolidated summary of hazards, rainfall, alerts, affected areas and response activity.</p>
+          </div>
+        </div>
+        <button class="btn-icon" id="closeReportModalBtn"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+
+      <div class="modal-body">
+        <div class="form-row">
+          <div class="form-group">
+            <label>Selected Time Period</label>
+            <select id="reportTimeSelect" class="form-control">
+              <option value="Past 30 Days (Monsoon Peak)" selected>Past 30 Days (Monsoon Peak)</option>
+              <option value="Past 24 Hours (Real-time Telemetry)">Past 24 Hours (Real-time Telemetry)</option>
+              <option value="Past 7 Days (Weekly Review)">Past 7 Days (Weekly Review)</option>
+              <option value="Current Monsoon Season (Seasonal Aggregate)">Current Monsoon Season (Seasonal Aggregate)</option>
+              <option value="Annual Historical Review (2026)">Annual Historical Review (2026)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>State</label>
+            <select id="reportRegionSelect" class="form-control">
+              <option value="All North East India" selected>All North East India (8 States)</option>
+              <option value="Assam">Assam</option>
+              <option value="Sikkim">Sikkim</option>
+              <option value="Meghalaya">Meghalaya</option>
+              <option value="Manipur">Manipur</option>
+              <option value="Arunachal Pradesh">Arunachal Pradesh</option>
+              <option value="Nagaland">Nagaland</option>
+              <option value="Mizoram">Mizoram</option>
+              <option value="Tripura">Tripura</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>District</label>
+            <select id="reportDistrictModalSelect" class="form-control">
+              <option value="All Districts" selected>All Districts</option>
+              <option value="Dima Hasao">Dima Hasao (Assam)</option>
+              <option value="North Sikkim">North Sikkim (Sikkim)</option>
+              <option value="East Khasi Hills">East Khasi Hills (Meghalaya)</option>
+              <option value="Noney">Noney (Manipur)</option>
+              <option value="Tawang">Tawang (Arunachal Pradesh)</option>
+              <option value="Kohima">Kohima (Nagaland)</option>
+              <option value="Aizawl">Aizawl (Mizoram)</option>
+              <option value="North Tripura">North Tripura (Tripura)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Risk Level</label>
+            <select id="reportRiskModalSelect" class="form-control">
+              <option value="All Risk Levels" selected>All Risk Levels</option>
+              <option value="Critical Only (Level 3)">Critical Only (Level 3)</option>
+              <option value="High & Critical (Level 2 & 3)">High &amp; Critical (Level 2 &amp; 3)</option>
+              <option value="Moderate (Level 1)">Moderate (Level 1)</option>
+              <option value="Low Watch">Low Watch</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="report-preview-box">
+          <div class="preview-header">
+            <strong><i class="fa-solid fa-file-shield"></i> ResQAI Landslide Assessment &amp; Response Summary</strong>
+            <span class="preview-timestamp">Generated: 2026-09-04 02:45 IST</span>
+          </div>
+          <div class="preview-stats-row">
+            <div><span>Highest Risk:</span> <strong>Dima Hasao, Assam (88% Prob)</strong></div>
+            <div><span>Max 24h Rain:</span> <strong>Cherrapunji (210.4 mm)</strong></div>
+            <div><span>Active SAR Teams:</span> <strong>6 Teams Deployed</strong></div>
+            <div><span>Resolution Rate:</span> <strong>94.7%</strong></div>
+          </div>
+          <p class="preview-text">
+            Consolidated geological sensor telemetry indicates critical pore water saturation (&gt;88%) along with active borehole inclinometer displacement (18.4 mm/h). 12 active incidents tracked with 46 SAR personnel deployed across SDRF, NDRF, and BRO units.
+          </p>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn btn-secondary" id="cancelReportModalBtn">Cancel</button>
+        <button class="btn btn-primary" id="downloadReportPdfBtn"><i class="fa-solid fa-file-arrow-down"></i> Generate Report (PDF / Summary)</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification Container -->
+  <div id="toastContainer" class="toast-container"></div>
+
+
+  <!-- ================= SCRIPTS ================= -->
+  <!-- Leaflet JS -->
+  <script
+    src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+    integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+    crossorigin=""
+  ></script>
+
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <!-- ResQAI Data Layer & App Script -->
+  <script src="dataService.js"></script>
+  <script src="app.js"></script>
+
+</body>
+</html>
