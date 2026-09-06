@@ -812,11 +812,11 @@ Team ResQAI
 Add your team member details here:
 
 Name	Role
-Team Member 1	Frontend / UI-UX
-Team Member 2	Backend Development
-Team Member 3	Machine Learning / AI
-Team Member 4	Data Collection and Processing
-Team Member 5	Research and Presentation
+ROHIT SHARMA	    Frontend / UI-UX
+HARISH KUMAR/NIKITA Backend Development
+NARENDRA SINGH	    Machine Learning / AI
+PIYUSH RAWAT	    Data Collection and Processing
+KHUSHI KUMARI	    Research and Presentation
 📌 Current Development Status
 Completed
 ✅ Frontend UI/UX
