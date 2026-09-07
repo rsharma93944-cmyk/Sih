@@ -13,6 +13,7 @@ const ResQApp = (function () {
 
   // Init on DOM ready
   document.addEventListener("DOMContentLoaded", async function () {
+    initAuth();
     initNavigation();
     initGlobalSearch();
     await loadHomeDashboard();
@@ -30,6 +31,217 @@ const ResQApp = (function () {
       navigateTo(hash);
     }
   });
+
+  /* ==========================================================
+     0. SUPABASE OFFICER LOGIN & TELEMETRY SYNCHRONIZATION
+     ========================================================== */
+  const SUPABASE_CONFIG = {
+    url: "https://tzosballctbzqtblwldm.supabase.co",
+    anonKey: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR6b3NiYWxsY3RienF0Ymx3bGRtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg3OTQyNzAsImV4cCI6MjEwNDM3MDI3MH0.4cRVDcNlmgmjyIy67luRyCWPPlz9JvFhrGAbLYg41TM",
+    tableName: "user_logins",
+    storageKey: "resqai_authenticated_officer"
+  };
+
+  async function saveLoginToSupabase(userData) {
+    try {
+      const response = await fetch(`${SUPABASE_CONFIG.url}/rest/v1/${SUPABASE_CONFIG.tableName}`, {
+        method: "POST",
+        headers: {
+          "apikey": SUPABASE_CONFIG.anonKey,
+          "Authorization": `Bearer ${SUPABASE_CONFIG.anonKey}`,
+          "Content-Type": "application/json",
+          "Prefer": "return=representation"
+        },
+        body: JSON.stringify({
+          officer_name: userData.name,
+          email: userData.email,
+          role: userData.role,
+          agency: userData.agency,
+          phone: userData.phone,
+          operational_region: userData.region,
+          session_id: "SESS-" + Math.random().toString(36).substring(2, 9).toUpperCase(),
+          status: "ACTIVE"
+        })
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.warn("Supabase response status:", response.status, errorText);
+      } else {
+        const insertedData = await response.json();
+        console.log("Officer login synced to Supabase:", insertedData);
+      }
+      return true;
+    } catch (err) {
+      console.error("Supabase sync error:", err);
+      return true;
+    }
+  }
+
+  function applyUserProfile(user) {
+    const topbarProfileName = document.getElementById("topbarProfileName");
+    if (topbarProfileName && user.name) {
+      topbarProfileName.textContent = user.name;
+    }
+
+    const editName = document.getElementById("editProfileName");
+    const editRole = document.getElementById("editProfileRole");
+    const editAgency = document.getElementById("editProfileAgency");
+    const editEmail = document.getElementById("editProfileEmail");
+    const editPhone = document.getElementById("editProfilePhone");
+
+    if (editName && user.name) editName.value = user.name;
+    if (editRole && user.role) editRole.value = user.role;
+    if (editAgency && user.agency) editAgency.value = user.agency;
+    if (editEmail && user.email) editEmail.value = user.email;
+    if (editPhone && user.phone) editPhone.value = user.phone;
+  }
+
+  function initAuth() {
+    const loginScreen = document.getElementById("loginScreen");
+    const loginCard = document.getElementById("loginCard");
+    const loginForm = document.getElementById("loginForm");
+    const nameInput = document.getElementById("officerNameInput");
+    const emailInput = document.getElementById("officerEmailInput");
+    const roleInput = document.getElementById("officerRoleInput");
+    const agencyInput = document.getElementById("officerAgencyInput");
+    const phoneInput = document.getElementById("officerPhoneInput");
+    const regionInput = document.getElementById("officerRegionInput");
+    const autoFillBtn = document.getElementById("autoFillDemoBtn");
+    const submitBtn = document.getElementById("loginSubmitBtn");
+    const loginBtnText = document.getElementById("loginBtnText");
+    const loginBtnIcon = document.getElementById("loginBtnIcon");
+    const errorBanner = document.getElementById("loginError");
+    const errorText = document.getElementById("loginErrorText");
+    const topLogoutBtn = document.getElementById("topLogoutBtn");
+
+    // Check cached session
+    try {
+      const stored = localStorage.getItem(SUPABASE_CONFIG.storageKey);
+      if (stored) {
+        const user = JSON.parse(stored);
+        if (user && user.email) {
+          if (loginScreen) {
+            loginScreen.classList.add("auth-hidden");
+            loginScreen.style.display = "none";
+          }
+          applyUserProfile(user);
+        }
+      }
+    } catch (e) {
+      console.warn("Storage check:", e);
+    }
+
+    // Auto-fill demo button
+    if (autoFillBtn) {
+      autoFillBtn.addEventListener("click", function () {
+        if (nameInput) nameInput.value = "Capt. Rajesh Saikia";
+        if (emailInput) emailInput.value = "r.saikia@sdma.assam.gov.in";
+        if (roleInput) roleInput.value = "Disaster Response Coordinator";
+        if (agencyInput) agencyInput.value = "State Disaster Management Authority (SDMA Assam)";
+        if (phoneInput) phoneInput.value = "+91 94350 12345";
+        if (regionInput) regionInput.value = "Assam - Brahmaputra & Barak Valleys";
+        if (errorBanner) errorBanner.style.display = "none";
+      });
+    }
+
+    async function handleLogin() {
+      const name = (nameInput ? nameInput.value : "").trim();
+      const email = (emailInput ? emailInput.value : "").trim();
+      const role = (roleInput ? roleInput.value : "Disaster Response Coordinator");
+      const agency = (agencyInput ? agencyInput.value : "").trim();
+      const phone = (phoneInput ? phoneInput.value : "").trim();
+      const region = (regionInput ? regionInput.value : "All 8 States (North East Region)");
+
+      if (!name) {
+        showError("Please enter your Officer / Team Name.");
+        if (nameInput) nameInput.focus();
+        return;
+      }
+      if (!email || !email.includes("@")) {
+        showError("Please enter a valid official email address.");
+        if (emailInput) emailInput.focus();
+        return;
+      }
+
+      if (errorBanner) errorBanner.style.display = "none";
+      if (submitBtn) {
+        submitBtn.classList.add("loading");
+        if (loginBtnText) loginBtnText.textContent = "Authenticating & Logging Session...";
+        if (loginBtnIcon) loginBtnIcon.className = "fa-solid fa-spinner fa-spin";
+      }
+
+      const userData = { name, email, role, agency, phone, region, loginTime: new Date().toISOString() };
+
+      // Save to Supabase table in background
+      await saveLoginToSupabase(userData);
+
+      // Save session to localStorage
+      localStorage.setItem(SUPABASE_CONFIG.storageKey, JSON.stringify(userData));
+
+      // Update UI
+      applyUserProfile(userData);
+
+      // Success animation
+      if (submitBtn) {
+        submitBtn.classList.remove("loading");
+        submitBtn.classList.add("success");
+        if (loginBtnText) loginBtnText.textContent = "Access Granted ✓";
+        if (loginBtnIcon) loginBtnIcon.className = "fa-solid fa-check";
+      }
+
+      setTimeout(() => {
+        if (loginScreen) {
+          loginScreen.classList.add("auth-hidden");
+          setTimeout(() => {
+            loginScreen.style.display = "none";
+            if (submitBtn) {
+              submitBtn.classList.remove("success");
+              if (loginBtnText) loginBtnText.textContent = "Sign In & Enter Command Center";
+              if (loginBtnIcon) loginBtnIcon.className = "fa-solid fa-arrow-right-to-bracket";
+            }
+          }, 400);
+        }
+      }, 500);
+    }
+
+    function showError(msg) {
+      if (errorBanner) {
+        if (errorText) errorText.textContent = msg;
+        errorBanner.style.display = "flex";
+      }
+      if (loginCard) {
+        loginCard.classList.add("shake");
+        setTimeout(() => loginCard.classList.remove("shake"), 500);
+      }
+    }
+
+    if (loginForm) {
+      loginForm.addEventListener("submit", function (e) {
+        e.preventDefault();
+        handleLogin();
+      });
+    }
+
+    if (submitBtn) {
+      submitBtn.addEventListener("click", function (e) {
+        e.preventDefault();
+        handleLogin();
+      });
+    }
+
+    // Logout button
+    if (topLogoutBtn) {
+      topLogoutBtn.addEventListener("click", function () {
+        localStorage.removeItem(SUPABASE_CONFIG.storageKey);
+        if (loginScreen) {
+          loginScreen.style.display = "flex";
+          void loginScreen.offsetWidth;
+          loginScreen.classList.remove("auth-hidden");
+        }
+      });
+    }
+  }
 
   /* ==========================================================
      1. NAVIGATION & SPA ROUTER
