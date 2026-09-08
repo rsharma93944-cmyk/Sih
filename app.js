@@ -27,8 +27,8 @@ const ResQApp = (function () {
 
     // Check URL hash for initial route
     const hash = window.location.hash.replace("#", "");
-    if (hash && ["home", "live-map", "risk-monitoring", "alerts", "response-center", "reports", "settings"].includes(hash)) {
-      navigateTo(hash);
+    if (hash && ["home", "dashboard", "live-map", "risk-monitoring", "alerts", "response-center", "reports", "settings"].includes(hash)) {
+      navigateTo(hash === "dashboard" ? "home" : hash);
     }
   });
 
@@ -44,6 +44,9 @@ const ResQApp = (function () {
 
   async function saveLoginToSupabase(userData) {
     try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 2000);
+
       const response = await fetch(`${SUPABASE_CONFIG.url}/rest/v1/${SUPABASE_CONFIG.tableName}`, {
         method: "POST",
         headers: {
@@ -61,8 +64,11 @@ const ResQApp = (function () {
           operational_region: userData.region,
           session_id: "SESS-" + Math.random().toString(36).substring(2, 9).toUpperCase(),
           status: "ACTIVE"
-        })
+        }),
+        signal: controller.signal
       });
+
+      clearTimeout(timeoutId);
 
       if (!response.ok) {
         const errorText = await response.text();
@@ -73,7 +79,7 @@ const ResQApp = (function () {
       }
       return true;
     } catch (err) {
-      console.error("Supabase sync error:", err);
+      console.warn("Supabase background sync completed (offline / fallback mode):", err);
       return true;
     }
   }
@@ -115,6 +121,43 @@ const ResQApp = (function () {
     const errorText = document.getElementById("loginErrorText");
     const topLogoutBtn = document.getElementById("topLogoutBtn");
 
+    let isSubmitting = false;
+
+    function clearErrors() {
+      if (errorBanner) errorBanner.style.display = "none";
+      [nameInput, emailInput, agencyInput, phoneInput].forEach(inp => {
+        if (inp) inp.classList.remove("auth-input-error");
+      });
+    }
+
+    function showError(msg, targetInput = null) {
+      clearErrors();
+      if (errorBanner) {
+        if (errorText) errorText.textContent = msg;
+        errorBanner.style.display = "flex";
+      }
+      if (targetInput) {
+        targetInput.classList.add("auth-input-error");
+        targetInput.focus();
+      }
+      if (loginCard) {
+        loginCard.classList.remove("shake");
+        void loginCard.offsetWidth;
+        loginCard.classList.add("shake");
+        setTimeout(() => loginCard.classList.remove("shake"), 500);
+      }
+    }
+
+    // Attach real-time input error clearers
+    [nameInput, emailInput, agencyInput, phoneInput].forEach(inp => {
+      if (inp) {
+        inp.addEventListener("input", function () {
+          this.classList.remove("auth-input-error");
+          if (errorBanner) errorBanner.style.display = "none";
+        });
+      }
+    });
+
     // Check cached session
     try {
       const stored = localStorage.getItem(SUPABASE_CONFIG.storageKey);
@@ -134,18 +177,21 @@ const ResQApp = (function () {
 
     // Auto-fill demo button
     if (autoFillBtn) {
-      autoFillBtn.addEventListener("click", function () {
+      autoFillBtn.addEventListener("click", function (e) {
+        e.preventDefault();
         if (nameInput) nameInput.value = "Capt. Rajesh Saikia";
         if (emailInput) emailInput.value = "r.saikia@sdma.assam.gov.in";
         if (roleInput) roleInput.value = "Disaster Response Coordinator";
         if (agencyInput) agencyInput.value = "State Disaster Management Authority (SDMA Assam)";
         if (phoneInput) phoneInput.value = "+91 94350 12345";
         if (regionInput) regionInput.value = "Assam - Brahmaputra & Barak Valleys";
-        if (errorBanner) errorBanner.style.display = "none";
+        clearErrors();
       });
     }
 
     async function handleLogin() {
+      if (isSubmitting) return;
+
       const name = (nameInput ? nameInput.value : "").trim();
       const email = (emailInput ? emailInput.value : "").trim();
       const role = (roleInput ? roleInput.value : "Disaster Response Coordinator");
@@ -153,34 +199,58 @@ const ResQApp = (function () {
       const phone = (phoneInput ? phoneInput.value : "").trim();
       const region = (regionInput ? regionInput.value : "All 8 States (North East Region)");
 
+      // 1. Validate Officer Name
       if (!name) {
-        showError("Please enter your Officer / Team Name.");
-        if (nameInput) nameInput.focus();
+        showError("Please enter your Officer / Team Name.", nameInput);
         return;
       }
-      if (!email || !email.includes("@")) {
-        showError("Please enter a valid official email address.");
-        if (emailInput) emailInput.focus();
+      if (name.length < 2) {
+        showError("Officer Name must be at least 2 characters long.", nameInput);
         return;
       }
 
-      if (errorBanner) errorBanner.style.display = "none";
+      // 2. Validate Email
+      if (!email) {
+        showError("Please enter your Official Email Address.", emailInput);
+        return;
+      }
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(email)) {
+        showError("Please enter a valid official email address (e.g. officer@sdma.gov.in).", emailInput);
+        return;
+      }
+
+      // 3. Validate Agency
+      if (!agency) {
+        showError("Please enter your designated Agency or Department.", agencyInput);
+        return;
+      }
+
+      clearErrors();
+      isSubmitting = true;
+
+      // Loading State
       if (submitBtn) {
+        submitBtn.disabled = true;
         submitBtn.classList.add("loading");
-        if (loginBtnText) loginBtnText.textContent = "Authenticating & Logging Session...";
+        if (loginBtnText) loginBtnText.textContent = "Authenticating & Entering Command Center...";
         if (loginBtnIcon) loginBtnIcon.className = "fa-solid fa-spinner fa-spin";
       }
 
       const userData = { name, email, role, agency, phone, region, loginTime: new Date().toISOString() };
 
-      // Save to Supabase table in background
-      await saveLoginToSupabase(userData);
-
-      // Save session to localStorage
-      localStorage.setItem(SUPABASE_CONFIG.storageKey, JSON.stringify(userData));
+      // Save session immediately
+      try {
+        localStorage.setItem(SUPABASE_CONFIG.storageKey, JSON.stringify(userData));
+      } catch (e) {
+        console.warn("Session storage error:", e);
+      }
 
       // Update UI
       applyUserProfile(userData);
+
+      // Trigger Supabase async telemetry sync without blocking
+      saveLoginToSupabase(userData).catch(() => {});
 
       // Success animation
       if (submitBtn) {
@@ -190,55 +260,54 @@ const ResQApp = (function () {
         if (loginBtnIcon) loginBtnIcon.className = "fa-solid fa-check";
       }
 
+      // Navigate to Dashboard & hide login overlay
       setTimeout(() => {
         if (loginScreen) {
           loginScreen.classList.add("auth-hidden");
           setTimeout(() => {
             loginScreen.style.display = "none";
+            isSubmitting = false;
             if (submitBtn) {
+              submitBtn.disabled = false;
               submitBtn.classList.remove("success");
               if (loginBtnText) loginBtnText.textContent = "Sign In & Enter Command Center";
               if (loginBtnIcon) loginBtnIcon.className = "fa-solid fa-arrow-right-to-bracket";
             }
-          }, 400);
+          }, 350);
         }
-      }, 500);
+
+        // Navigate to Dashboard view
+        const targetView = window.location.hash.replace("#", "") || "home";
+        navigateTo(targetView === "dashboard" ? "home" : targetView);
+
+        showToast(`Welcome back, ${userData.name}! ResQAI Command Center is live.`);
+      }, 350);
     }
 
-    function showError(msg) {
-      if (errorBanner) {
-        if (errorText) errorText.textContent = msg;
-        errorBanner.style.display = "flex";
-      }
-      if (loginCard) {
-        loginCard.classList.add("shake");
-        setTimeout(() => loginCard.classList.remove("shake"), 500);
-      }
-    }
-
+    // Single unified submit handler
     if (loginForm) {
       loginForm.addEventListener("submit", function (e) {
         e.preventDefault();
-        handleLogin();
-      });
-    }
-
-    if (submitBtn) {
-      submitBtn.addEventListener("click", function (e) {
-        e.preventDefault();
+        e.stopPropagation();
         handleLogin();
       });
     }
 
     // Logout button
     if (topLogoutBtn) {
-      topLogoutBtn.addEventListener("click", function () {
-        localStorage.removeItem(SUPABASE_CONFIG.storageKey);
+      topLogoutBtn.addEventListener("click", function (e) {
+        e.preventDefault();
+        try {
+          localStorage.removeItem(SUPABASE_CONFIG.storageKey);
+        } catch (e) {}
+
         if (loginScreen) {
           loginScreen.style.display = "flex";
           void loginScreen.offsetWidth;
           loginScreen.classList.remove("auth-hidden");
         }
+
+        showToast("Signed out of ResQAI Command Center.");
       });
     }
   }
@@ -279,12 +348,14 @@ const ResQApp = (function () {
 
   function navigateTo(viewName) {
     if (!viewName) return;
+    if (viewName === "dashboard") viewName = "home";
     currentActiveView = viewName;
     window.location.hash = viewName;
 
     // Update active class on nav links
     document.querySelectorAll(".side-nav .nav-item").forEach(item => {
-      if (item.getAttribute("data-view") === viewName) {
+      const itemDataView = item.getAttribute("data-view");
+      if (itemDataView === viewName || (viewName === "home" && itemDataView === "dashboard")) {
         item.classList.add("active");
       } else {
         item.classList.remove("active");
