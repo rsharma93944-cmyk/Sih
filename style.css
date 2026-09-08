@@ -482,7 +482,7 @@ body {
 }
 
 .dashboard-view.active {
-  display: block;
+  display: block !important;
 }
 
 /* ================= 1. HOME HERO SECTION ================= */

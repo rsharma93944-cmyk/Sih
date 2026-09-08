@@ -13,23 +13,24 @@ const ResQApp = (function () {
 
   // Init on DOM ready
   document.addEventListener("DOMContentLoaded", async function () {
-    initUserProfile();
-    initNavigation();
-    initGlobalSearch();
-    await loadHomeDashboard();
-    await initMap();
-    await initRiskMonitoring();
-    await initAlerts();
-    await initResponseCenter();
-    await initReports();
-    initSettings();
-    initModals();
+    // 1. Initialize core non-blocking systems
+    try { initUserProfile(); } catch (e) { console.warn("Officer profile init warning:", e); }
+    try { initNavigation(); } catch (e) { console.warn("Navigation init warning:", e); }
+    try { initGlobalSearch(); } catch (e) { console.warn("Search init warning:", e); }
+    try { initSettings(); } catch (e) { console.warn("Settings init warning:", e); }
+    try { initModals(); } catch (e) { console.warn("Modals init warning:", e); }
 
-    // Check URL hash for initial route
-    const hash = window.location.hash.replace("#", "");
-    if (hash && ["home", "dashboard", "live-map", "risk-monitoring", "alerts", "response-center", "reports", "settings"].includes(hash)) {
-      navigateTo(hash === "dashboard" ? "home" : hash);
-    }
+    // 2. Resolve initial active view immediately from URL hash or default to home
+    const initialHash = window.location.hash.replace("#", "");
+    navigateTo(initialHash || "home");
+
+    // 3. Load dashboard & view data asynchronously with isolated try-catches
+    try { await loadHomeDashboard(); } catch (e) { console.warn("Home dashboard data load warning:", e); }
+    try { await initMap(); } catch (e) { console.warn("Live map init warning:", e); }
+    try { await initRiskMonitoring(); } catch (e) { console.warn("Risk monitoring init warning:", e); }
+    try { await initAlerts(); } catch (e) { console.warn("Alerts init warning:", e); }
+    try { await initResponseCenter(); } catch (e) { console.warn("Response center init warning:", e); }
+    try { await initReports(); } catch (e) { console.warn("Reports init warning:", e); }
   });
 
   /* ==========================================================
@@ -80,62 +81,213 @@ const ResQApp = (function () {
   /* ==========================================================
      1. NAVIGATION & SPA ROUTER
      ========================================================== */
+  function normalizeViewName(rawViewName) {
+    if (!rawViewName || typeof rawViewName !== "string") return "home";
+    let cleaned = rawViewName.trim().toLowerCase();
+    if (cleaned.startsWith("#")) cleaned = cleaned.slice(1);
+    if (cleaned.startsWith("view-")) cleaned = cleaned.replace("view-", "");
+
+    const aliasMap = {
+      "": "home",
+      "home": "home",
+      "dashboard": "home",
+      "main": "home",
+      "overview": "home",
+      "index": "home",
+
+      "live-map": "live-map",
+      "live-maps": "live-map",
+      "live_map": "live-map",
+      "live_maps": "live-map",
+      "livemap": "live-map",
+      "livemaps": "live-map",
+      "live map": "live-map",
+      "live maps": "live-map",
+      "map": "live-map",
+      "maps": "live-map",
+      "gis": "live-map",
+
+      "risk-monitoring": "risk-monitoring",
+      "risk_monitoring": "risk-monitoring",
+      "risk-monitor": "risk-monitoring",
+      "riskmonitoring": "risk-monitoring",
+      "risk monitor": "risk-monitoring",
+      "risk monitoring": "risk-monitoring",
+      "risk": "risk-monitoring",
+      "monitoring": "risk-monitoring",
+      "telemetry": "risk-monitoring",
+      "sensors": "risk-monitoring",
+
+      "alerts": "alerts",
+      "alert": "alerts",
+      "notifications": "alerts",
+      "notification": "alerts",
+      "warnings": "alerts",
+      "warning": "alerts",
+
+      "response-center": "response-center",
+      "response_center": "response-center",
+      "responsecenter": "response-center",
+      "response-centre": "response-center",
+      "response center": "response-center",
+      "response": "response-center",
+      "rescue": "response-center",
+      "incident": "response-center",
+      "incidents": "response-center",
+      "teams": "response-center",
+
+      "reports": "reports",
+      "report": "reports",
+      "analytics": "reports",
+      "stats": "reports",
+      "statistics": "reports",
+      "historical": "reports",
+      "historical-reports": "reports",
+
+      "settings": "settings",
+      "setting": "settings",
+      "preferences": "settings",
+      "profile": "settings",
+      "config": "settings",
+      "configuration": "settings",
+      "account": "settings"
+    };
+
+    if (aliasMap[cleaned]) return aliasMap[cleaned];
+    if (document.getElementById(`view-${cleaned}`)) return cleaned;
+    return "home";
+  }
+
   function initNavigation() {
+    // 1. Sidebar navigation with event delegation
+    const sideNav = document.querySelector(".side-nav");
+    if (sideNav) {
+      sideNav.addEventListener("click", function (e) {
+        const navItem = e.target.closest(".nav-item");
+        if (navItem) {
+          e.preventDefault();
+          const rawView = navItem.getAttribute("data-view") || navItem.getAttribute("href");
+          navigateTo(rawView);
+        }
+      });
+    }
+
+    // Direct binding on all nav-items as fallback
     const navItems = document.querySelectorAll(".side-nav .nav-item");
     navItems.forEach(item => {
       item.addEventListener("click", function (e) {
         e.preventDefault();
-        const view = this.getAttribute("data-view");
+        const view = this.getAttribute("data-view") || this.getAttribute("href");
         navigateTo(view);
       });
     });
 
-    // Mobile menu toggle
+    // 2. Brand logo click -> navigate to home
+    const brand = document.querySelector(".brand");
+    if (brand) {
+      brand.style.cursor = "pointer";
+      brand.addEventListener("click", function (e) {
+        e.preventDefault();
+        navigateTo("home");
+      });
+    }
+
+    // 3. Global click delegation for any interactive navigation elements
+    document.addEventListener("click", function (e) {
+      const navElem = e.target.closest("[data-view], [data-navigate], a[href^='#']");
+      if (navElem && !navElem.closest(".side-nav")) {
+        const targetView = navElem.getAttribute("data-view") || navElem.getAttribute("data-navigate") || navElem.getAttribute("href");
+        if (targetView && targetView !== "#" && !targetView.startsWith("#modal") && !navElem.classList.contains("dropdown-item")) {
+          const normalized = normalizeViewName(targetView);
+          if (document.getElementById(`view-${normalized}`)) {
+            e.preventDefault();
+            navigateTo(normalized);
+          }
+        }
+      }
+    });
+
+    // 4. Listen to browser history / back / forward hash changes
+    window.addEventListener("hashchange", function () {
+      const hash = window.location.hash.replace("#", "");
+      if (hash && hash !== currentActiveView) {
+        navigateTo(hash);
+      }
+    });
+
+    // 5. Mobile menu toggle
     const menuToggle = document.getElementById("menuToggle");
     const sidebar = document.querySelector(".sidebar");
     if (menuToggle && sidebar) {
-      menuToggle.addEventListener("click", () => {
+      menuToggle.addEventListener("click", (e) => {
+        e.stopPropagation();
         sidebar.classList.toggle("open");
       });
     }
 
-    // Topbar notification & profile buttons
+    // Close sidebar when clicking outside on mobile
+    document.addEventListener("click", function (e) {
+      if (sidebar && sidebar.classList.contains("open") && !sidebar.contains(e.target) && e.target !== menuToggle && !menuToggle.contains(e.target)) {
+        sidebar.classList.remove("open");
+      }
+    });
+
+    // 6. Topbar notification & profile buttons
     const topNotif = document.getElementById("topNotificationBtn");
     if (topNotif) {
-      topNotif.addEventListener("click", () => navigateTo("alerts"));
+      topNotif.addEventListener("click", (e) => {
+        e.preventDefault();
+        navigateTo("alerts");
+      });
     }
 
     const userProfile = document.getElementById("userProfileBtn");
     if (userProfile) {
-      userProfile.addEventListener("click", () => navigateTo("settings"));
+      userProfile.addEventListener("click", (e) => {
+        e.preventDefault();
+        navigateTo("settings");
+      });
     }
   }
 
-  function navigateTo(viewName) {
-    if (!viewName) return;
-    if (viewName === "dashboard") viewName = "home";
+  function navigateTo(rawViewName) {
+    if (!rawViewName) return;
+    const viewName = normalizeViewName(rawViewName);
     currentActiveView = viewName;
-    window.location.hash = viewName;
 
-    // Update active class on nav links
+    // Update URL hash safely without unwanted jump
+    if (window.location.hash.replace("#", "") !== viewName) {
+      if (window.history && window.history.replaceState) {
+        window.history.replaceState(null, "", `#${viewName}`);
+      } else {
+        window.location.hash = viewName;
+      }
+    }
+
+    // Update active class on all sidebar nav links
     document.querySelectorAll(".side-nav .nav-item").forEach(item => {
-      const itemDataView = item.getAttribute("data-view");
-      if (itemDataView === viewName || (viewName === "home" && itemDataView === "dashboard")) {
+      const itemDataView = normalizeViewName(item.getAttribute("data-view") || item.getAttribute("href") || "");
+      if (itemDataView === viewName) {
         item.classList.add("active");
       } else {
         item.classList.remove("active");
       }
     });
 
-    // Update active view section
+    // Update visibility of all dashboard views
     document.querySelectorAll(".dashboard-view").forEach(section => {
       section.classList.remove("active");
+      section.style.display = "none";
     });
 
     const targetSection = document.getElementById(`view-${viewName}`);
     if (targetSection) {
       targetSection.classList.add("active");
+      targetSection.style.display = "block";
     }
+
+    // Scroll smoothly to top of the new view
+    window.scrollTo({ top: 0, behavior: "instant" });
 
     // Close mobile menu if open
     const sidebar = document.querySelector(".sidebar");
@@ -143,11 +295,37 @@ const ResQApp = (function () {
       sidebar.classList.remove("open");
     }
 
-    // Leaflet map needs size invalidation when shown from hidden tab
+    // Trigger tab-specific view redraws and geometry invalidations:
+    // 1. Leaflet map needs size recalculation when tab unhides
     if (viewName === "live-map" && mapInstance) {
       setTimeout(() => {
-        mapInstance.invalidateSize();
-      }, 150);
+        try { mapInstance.invalidateSize(); } catch (e) {}
+      }, 50);
+      setTimeout(() => {
+        try { mapInstance.invalidateSize(); } catch (e) {}
+      }, 250);
+    }
+
+    // 2. Risk monitoring telemetry charts need resize
+    if (viewName === "risk-monitoring" && monitoringCharts) {
+      setTimeout(() => {
+        try {
+          Object.values(monitoringCharts).forEach(c => {
+            if (c && typeof c.resize === "function") c.resize();
+          });
+        } catch (e) {}
+      }, 60);
+    }
+
+    // 3. Reports & Analytics charts need resize
+    if (viewName === "reports" && reportsCharts) {
+      setTimeout(() => {
+        try {
+          Object.values(reportsCharts).forEach(c => {
+            if (c && typeof c.resize === "function") c.resize();
+          });
+        } catch (e) {}
+      }, 60);
     }
   }
 
