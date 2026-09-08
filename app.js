@@ -13,7 +13,7 @@ const ResQApp = (function () {
 
   // Init on DOM ready
   document.addEventListener("DOMContentLoaded", async function () {
-    initAuth();
+    initUserProfile();
     initNavigation();
     initGlobalSearch();
     await loadHomeDashboard();
@@ -33,58 +33,10 @@ const ResQApp = (function () {
   });
 
   /* ==========================================================
-     0. SUPABASE OFFICER LOGIN & TELEMETRY SYNCHRONIZATION
+     0. OFFICER USER PROFILE & PREFERENCES
      ========================================================== */
-  const SUPABASE_CONFIG = {
-    url: "https://tzosballctbzqtblwldm.supabase.co",
-    anonKey: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InR6b3NiYWxsY3RienF0Ymx3bGRtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg3OTQyNzAsImV4cCI6MjEwNDM3MDI3MH0.4cRVDcNlmgmjyIy67luRyCWPPlz9JvFhrGAbLYg41TM",
-    tableName: "user_logins",
-    storageKey: "resqai_authenticated_officer"
-  };
-
-  async function saveLoginToSupabase(userData) {
-    try {
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 2000);
-
-      const response = await fetch(`${SUPABASE_CONFIG.url}/rest/v1/${SUPABASE_CONFIG.tableName}`, {
-        method: "POST",
-        headers: {
-          "apikey": SUPABASE_CONFIG.anonKey,
-          "Authorization": `Bearer ${SUPABASE_CONFIG.anonKey}`,
-          "Content-Type": "application/json",
-          "Prefer": "return=representation"
-        },
-        body: JSON.stringify({
-          officer_name: userData.name,
-          email: userData.email,
-          role: userData.role,
-          agency: userData.agency,
-          phone: userData.phone,
-          operational_region: userData.region,
-          session_id: "SESS-" + Math.random().toString(36).substring(2, 9).toUpperCase(),
-          status: "ACTIVE"
-        }),
-        signal: controller.signal
-      });
-
-      clearTimeout(timeoutId);
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.warn("Supabase response status:", response.status, errorText);
-      } else {
-        const insertedData = await response.json();
-        console.log("Officer login synced to Supabase:", insertedData);
-      }
-      return true;
-    } catch (err) {
-      console.warn("Supabase background sync completed (offline / fallback mode):", err);
-      return true;
-    }
-  }
-
   function applyUserProfile(user) {
+    if (!user) return;
     const topbarProfileName = document.getElementById("topbarProfileName");
     if (topbarProfileName && user.name) {
       topbarProfileName.textContent = user.name;
@@ -103,213 +55,26 @@ const ResQApp = (function () {
     if (editPhone && user.phone) editPhone.value = user.phone;
   }
 
-  function initAuth() {
-    const loginScreen = document.getElementById("loginScreen");
-    const loginCard = document.getElementById("loginCard");
-    const loginForm = document.getElementById("loginForm");
-    const nameInput = document.getElementById("officerNameInput");
-    const emailInput = document.getElementById("officerEmailInput");
-    const roleInput = document.getElementById("officerRoleInput");
-    const agencyInput = document.getElementById("officerAgencyInput");
-    const phoneInput = document.getElementById("officerPhoneInput");
-    const regionInput = document.getElementById("officerRegionInput");
-    const autoFillBtn = document.getElementById("autoFillDemoBtn");
-    const submitBtn = document.getElementById("loginSubmitBtn");
-    const loginBtnText = document.getElementById("loginBtnText");
-    const loginBtnIcon = document.getElementById("loginBtnIcon");
-    const errorBanner = document.getElementById("loginError");
-    const errorText = document.getElementById("loginErrorText");
-    const topLogoutBtn = document.getElementById("topLogoutBtn");
-
-    let isSubmitting = false;
-
-    function clearErrors() {
-      if (errorBanner) errorBanner.style.display = "none";
-      [nameInput, emailInput, agencyInput, phoneInput].forEach(inp => {
-        if (inp) inp.classList.remove("auth-input-error");
-      });
-    }
-
-    function showError(msg, targetInput = null) {
-      clearErrors();
-      if (errorBanner) {
-        if (errorText) errorText.textContent = msg;
-        errorBanner.style.display = "flex";
-      }
-      if (targetInput) {
-        targetInput.classList.add("auth-input-error");
-        targetInput.focus();
-      }
-      if (loginCard) {
-        loginCard.classList.remove("shake");
-        void loginCard.offsetWidth;
-        loginCard.classList.add("shake");
-        setTimeout(() => loginCard.classList.remove("shake"), 500);
-      }
-    }
-
-    // Attach real-time input error clearers
-    [nameInput, emailInput, agencyInput, phoneInput].forEach(inp => {
-      if (inp) {
-        inp.addEventListener("input", function () {
-          this.classList.remove("auth-input-error");
-          if (errorBanner) errorBanner.style.display = "none";
-        });
-      }
-    });
-
-    // Check cached session
+  function initUserProfile() {
     try {
-      const stored = localStorage.getItem(SUPABASE_CONFIG.storageKey);
+      const stored = localStorage.getItem("resqai_authenticated_officer");
       if (stored) {
         const user = JSON.parse(stored);
-        if (user && user.email) {
-          if (loginScreen) {
-            loginScreen.classList.add("auth-hidden");
-            loginScreen.style.display = "none";
-          }
-          applyUserProfile(user);
-        }
-      }
-    } catch (e) {
-      console.warn("Storage check:", e);
-    }
-
-    // Auto-fill demo button
-    if (autoFillBtn) {
-      autoFillBtn.addEventListener("click", function (e) {
-        e.preventDefault();
-        if (nameInput) nameInput.value = "Capt. Rajesh Saikia";
-        if (emailInput) emailInput.value = "r.saikia@sdma.assam.gov.in";
-        if (roleInput) roleInput.value = "Disaster Response Coordinator";
-        if (agencyInput) agencyInput.value = "State Disaster Management Authority (SDMA Assam)";
-        if (phoneInput) phoneInput.value = "+91 94350 12345";
-        if (regionInput) regionInput.value = "Assam - Brahmaputra & Barak Valleys";
-        clearErrors();
-      });
-    }
-
-    async function handleLogin() {
-      if (isSubmitting) return;
-
-      const name = (nameInput ? nameInput.value : "").trim();
-      const email = (emailInput ? emailInput.value : "").trim();
-      const role = (roleInput ? roleInput.value : "Disaster Response Coordinator");
-      const agency = (agencyInput ? agencyInput.value : "").trim();
-      const phone = (phoneInput ? phoneInput.value : "").trim();
-      const region = (regionInput ? regionInput.value : "All 8 States (North East Region)");
-
-      // 1. Validate Officer Name
-      if (!name) {
-        showError("Please enter your Officer / Team Name.", nameInput);
+        applyUserProfile(user);
         return;
       }
-      if (name.length < 2) {
-        showError("Officer Name must be at least 2 characters long.", nameInput);
-        return;
-      }
+    } catch (e) {}
 
-      // 2. Validate Email
-      if (!email) {
-        showError("Please enter your Official Email Address.", emailInput);
-        return;
-      }
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      if (!emailRegex.test(email)) {
-        showError("Please enter a valid official email address (e.g. officer@sdma.gov.in).", emailInput);
-        return;
-      }
-
-      // 3. Validate Agency
-      if (!agency) {
-        showError("Please enter your designated Agency or Department.", agencyInput);
-        return;
-      }
-
-      clearErrors();
-      isSubmitting = true;
-
-      // Loading State
-      if (submitBtn) {
-        submitBtn.disabled = true;
-        submitBtn.classList.add("loading");
-        if (loginBtnText) loginBtnText.textContent = "Authenticating & Entering Command Center...";
-        if (loginBtnIcon) loginBtnIcon.className = "fa-solid fa-spinner fa-spin";
-      }
-
-      const userData = { name, email, role, agency, phone, region, loginTime: new Date().toISOString() };
-
-      // Save session immediately
-      try {
-        localStorage.setItem(SUPABASE_CONFIG.storageKey, JSON.stringify(userData));
-      } catch (e) {
-        console.warn("Session storage error:", e);
-      }
-
-      // Update UI
-      applyUserProfile(userData);
-
-      // Trigger Supabase async telemetry sync without blocking
-      saveLoginToSupabase(userData).catch(() => {});
-
-      // Success animation
-      if (submitBtn) {
-        submitBtn.classList.remove("loading");
-        submitBtn.classList.add("success");
-        if (loginBtnText) loginBtnText.textContent = "Access Granted ✓";
-        if (loginBtnIcon) loginBtnIcon.className = "fa-solid fa-check";
-      }
-
-      // Navigate to Dashboard & hide login overlay
-      setTimeout(() => {
-        if (loginScreen) {
-          loginScreen.classList.add("auth-hidden");
-          setTimeout(() => {
-            loginScreen.style.display = "none";
-            isSubmitting = false;
-            if (submitBtn) {
-              submitBtn.disabled = false;
-              submitBtn.classList.remove("success");
-              if (loginBtnText) loginBtnText.textContent = "Sign In & Enter Command Center";
-              if (loginBtnIcon) loginBtnIcon.className = "fa-solid fa-arrow-right-to-bracket";
-            }
-          }, 350);
-        }
-
-        // Navigate to Dashboard view
-        const targetView = window.location.hash.replace("#", "") || "home";
-        navigateTo(targetView === "dashboard" ? "home" : targetView);
-
-        showToast(`Welcome back, ${userData.name}! ResQAI Command Center is live.`);
-      }, 350);
-    }
-
-    // Single unified submit handler
-    if (loginForm) {
-      loginForm.addEventListener("submit", function (e) {
-        e.preventDefault();
-        e.stopPropagation();
-        handleLogin();
-      });
-    }
-
-    // Logout button
-    if (topLogoutBtn) {
-      topLogoutBtn.addEventListener("click", function (e) {
-        e.preventDefault();
-        try {
-          localStorage.removeItem(SUPABASE_CONFIG.storageKey);
-        } catch (e) {}
-
-        if (loginScreen) {
-          loginScreen.style.display = "flex";
-          void loginScreen.offsetWidth;
-          loginScreen.classList.remove("auth-hidden");
-        }
-
-        showToast("Signed out of ResQAI Command Center.");
-      });
-    }
+    // Default designated officer profile
+    const defaultProfile = {
+      name: "Capt. Rajesh Saikia",
+      email: "r.saikia@sdma.assam.gov.in",
+      role: "Disaster Response Coordinator",
+      agency: "State Disaster Management Authority (SDMA Assam)",
+      phone: "+91 94350 12345",
+      region: "Assam - Brahmaputra & Barak Valleys"
+    };
+    applyUserProfile(defaultProfile);
   }
 
   /* ==========================================================
