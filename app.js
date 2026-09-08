@@ -17,7 +17,7 @@ const ResQApp = (function () {
     initNavigation();
     initGlobalSearch();
     await loadHomeDashboard();
-    initMap();
+    await initMap();
     await initRiskMonitoring();
     await initAlerts();
     await initResponseCenter();
@@ -374,11 +374,70 @@ const ResQApp = (function () {
   }
 
   /* ==========================================================
+     ENVIRONMENT & MAP API KEY RESOLVER
+     ========================================================== */
+  async function resolveEnvironmentConfig() {
+    window.ENV = window.ENV || {};
+
+    // In local development over HTTP, dynamically load .env if variables are not yet loaded
+    if (!window.ENV.MAP_API_KEY && !window.ENV.VITE_MAP_API_KEY && !window.ENV.REACT_APP_MAP_API_KEY) {
+      try {
+        if (typeof window !== "undefined" && window.location && window.location.protocol.startsWith("http")) {
+          const res = await fetch(".env");
+          if (res.ok) {
+            const text = await res.text();
+            text.split("\n").forEach(line => {
+              const trimmed = line.trim();
+              if (trimmed && !trimmed.startsWith("#") && trimmed.includes("=")) {
+                const eqIdx = trimmed.indexOf("=");
+                const key = trimmed.slice(0, eqIdx).trim();
+                const val = trimmed.slice(eqIdx + 1).trim().replace(/^['"]|['"]$/g, "");
+                if (key && val && val !== "YOUR_API_KEY_HERE") {
+                  window.ENV[key] = val;
+                }
+              }
+            });
+          }
+        }
+      } catch (err) {
+        // Fallback gracefully without throwing
+      }
+    }
+  }
+
+  function getMapApiKey() {
+    // 1. Check window.ENV (populated via .env, env.js, runtime config, or Netlify snippet)
+    if (typeof window !== "undefined" && window.ENV) {
+      if (window.ENV.MAP_API_KEY && window.ENV.MAP_API_KEY !== "YOUR_API_KEY_HERE") return window.ENV.MAP_API_KEY;
+      if (window.ENV.VITE_MAP_API_KEY && window.ENV.VITE_MAP_API_KEY !== "YOUR_API_KEY_HERE") return window.ENV.VITE_MAP_API_KEY;
+      if (window.ENV.REACT_APP_MAP_API_KEY && window.ENV.REACT_APP_MAP_API_KEY !== "YOUR_API_KEY_HERE") return window.ENV.REACT_APP_MAP_API_KEY;
+    }
+    // 2. Check process.env (for Vite / CRA / Webpack bundlers)
+    if (typeof process !== "undefined" && process.env) {
+      if (process.env.MAP_API_KEY && process.env.MAP_API_KEY !== "YOUR_API_KEY_HERE") return process.env.MAP_API_KEY;
+      if (process.env.VITE_MAP_API_KEY && process.env.VITE_MAP_API_KEY !== "YOUR_API_KEY_HERE") return process.env.VITE_MAP_API_KEY;
+      if (process.env.REACT_APP_MAP_API_KEY && process.env.REACT_APP_MAP_API_KEY !== "YOUR_API_KEY_HERE") return process.env.REACT_APP_MAP_API_KEY;
+    }
+    // 3. Check import.meta.env (for Vite ESM environments)
+    try {
+      if (typeof import.meta !== "undefined" && import.meta.env) {
+        if (import.meta.env.VITE_MAP_API_KEY && import.meta.env.VITE_MAP_API_KEY !== "YOUR_API_KEY_HERE") return import.meta.env.VITE_MAP_API_KEY;
+        if (import.meta.env.MAP_API_KEY && import.meta.env.MAP_API_KEY !== "YOUR_API_KEY_HERE") return import.meta.env.MAP_API_KEY;
+      }
+    } catch (e) {}
+
+    return "";
+  }
+
+  /* ==========================================================
      3. LIVE MAP (LEAFLET.JS FOR NORTHEAST INDIA)
      ========================================================== */
   async function initMap() {
     const mapElement = document.getElementById("leafletMap");
     if (!mapElement) return;
+
+    await resolveEnvironmentConfig();
+    const apiKey = getMapApiKey();
 
     // Northeast India geographic center coordinates
     const neCenter = [26.2006, 92.9376];
@@ -387,11 +446,36 @@ const ResQApp = (function () {
       attributionControl: false
     }).setView(neCenter, 7);
 
-    // High clarity CartoDB Voyager map tiles
-    L.tileLayer("https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png", {
+    // Determine tile layer configuration using environment API key
+    let tileUrl = "https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png";
+    let tileOptions = {
       maxZoom: 18,
-      subdomains: "abcd",
-    }).addTo(mapInstance);
+      subdomains: "abcd"
+    };
+
+    if (apiKey) {
+      if (apiKey.startsWith("pk.")) {
+        // Mapbox Streets Tile API
+        tileUrl = `https://api.mapbox.com/styles/v1/mapbox/streets-v12/tiles/{z}/{x}/{y}?access_token=${apiKey}`;
+        tileOptions.tileSize = 512;
+        tileOptions.zoomOffset = -1;
+      } else if (apiKey.startsWith("maptiler_") || apiKey.length === 20 || apiKey.length === 24 || apiKey.includes("_")) {
+        // MapTiler Raster Tile API
+        tileUrl = `https://api.maptiler.com/maps/streets-v2/{z}/{x}/{y}.png?key=${apiKey}`;
+      } else {
+        // General tile provider or Carto with API Key
+        tileUrl = `https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png?api_key=${encodeURIComponent(apiKey)}`;
+      }
+    }
+
+    // Attach Tile Layer to Leaflet with graceful error fallback
+    const tileLayer = L.tileLayer(tileUrl, tileOptions).addTo(mapInstance);
+    tileLayer.on("tileerror", function () {
+      const fallbackUrl = "https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png";
+      if (tileUrl !== fallbackUrl) {
+        tileLayer.setUrl(fallbackUrl);
+      }
+    });
 
     // Fetch stations and create markers
     const stations = await ResQDataService.getStations();
